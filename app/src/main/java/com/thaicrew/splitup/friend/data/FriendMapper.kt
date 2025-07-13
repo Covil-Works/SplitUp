@@ -10,7 +10,7 @@ fun Friend.toEntity(): FriendEntity{
     )
 }
 
-fun FriendEntity.toDomain(): Friend{
+fun FriendEntity.toDomain(): Friend {
     return Friend(
         id = this.id,
         name = this.name,

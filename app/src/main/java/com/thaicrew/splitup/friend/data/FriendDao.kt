@@ -15,7 +15,7 @@ interface FriendDao {
     suspend fun update(friend: FriendEntity)
 
     @Query("SELECT * from friend WHERE friend_is_active = 1 ORDER BY friend_name ASC")
-    suspend fun getActiveFriends(): Flow<List<FriendEntity>>
+    fun getActiveFriends(): Flow<List<FriendEntity>>
 
     @Query("SELECT * FROM friend WHERE friend_name = :name LIMIT 1")
     suspend fun findByName(name: String): FriendEntity?

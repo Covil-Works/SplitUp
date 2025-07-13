@@ -31,7 +31,7 @@ replay_pid*
 *.aab
 *.ap_
 *.dex
-/build/
+/app/build
 /captures/
 .gradle/
 local.properties

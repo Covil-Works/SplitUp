@@ -4,44 +4,74 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.activity.viewModels
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.room.Room
+import com.thaicrew.splitup.common.data.local.AppDatabase
+import com.thaicrew.splitup.friend.data.FriendRepositoryImpl
+import com.thaicrew.splitup.friend.domain.AddFriendUseCase
+import com.thaicrew.splitup.friend.domain.GetActiveFriendsUseCase
+import com.thaicrew.splitup.friend.ui.FriendScreen
+import com.thaicrew.splitup.friend.ui.FriendViewModel
 import com.thaicrew.splitup.ui.theme.SplitUpTheme
 
 class MainActivity : ComponentActivity() {
+
+    // Vamos construir a nossa cadeia de dependências manualmente aqui.
+    // Mais tarde, um framework de Injeção de Dependência (Hilt) fará isto por nós.
+    // Dentro de MainActivity.kt
+    private val database by lazy {
+        Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java,
+            "splitup.db"
+        )
+            .allowMainThreadQueries() // <-- ADICIONE ESTA LINHA
+            .build()
+    }
+
+    private val friendDao by lazy {
+        database.friendDao()
+    }
+
+    private val friendRepository by lazy {
+        FriendRepositoryImpl(friendDao)
+    }
+
+    private val getActiveFriendsUseCase by lazy {
+        GetActiveFriendsUseCase(friendRepository)
+    }
+
+    private val addFriendUseCase by lazy {
+        AddFriendUseCase(friendRepository)
+    }
+
+    // Usamos uma ViewModel Factory para poder passar os nossos UseCases para o ViewModel.
+    private val friendViewModelFactory by lazy {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                if (modelClass.isAssignableFrom(FriendViewModel::class.java)) {
+                    @Suppress("UNCHECKED_CAST")
+                    return FriendViewModel(getActiveFriendsUseCase, addFriendUseCase) as T
+                }
+                throw IllegalArgumentException("Unknown ViewModel class")
+            }
+        }
+    }
+
+    // Obtemos a instância do ViewModel que sobreviverá às mudanças de configuração.
+    private val viewModel: FriendViewModel by viewModels { friendViewModelFactory }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             SplitUpTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                // Chamamos o nosso ecrã principal, passando o ViewModel que preparámos.
+                FriendScreen(viewModel = viewModel)
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    SplitUpTheme {
-        Greeting("Android")
     }
 }

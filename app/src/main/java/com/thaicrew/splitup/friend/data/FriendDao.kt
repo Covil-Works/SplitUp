@@ -9,10 +9,10 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface FriendDao {
     @Insert
-    suspend fun insert(friend: FriendEntity)
+    suspend fun insert(friend: FriendEntity): Long
 
     @Update
-    suspend fun update(friend: FriendEntity)
+    suspend fun update(friend: FriendEntity): Int
 
     @Query("SELECT * from friend WHERE friend_is_active = 1 ORDER BY friend_name ASC")
     fun getActiveFriends(): Flow<List<FriendEntity>>

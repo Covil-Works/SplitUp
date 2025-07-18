@@ -30,4 +30,8 @@ class FriendRepositoryImpl(
         dao.update(friend.toEntity())
     }
 
+    override suspend fun isFriendActive(id: Int): Boolean {
+        return dao.isFriendActive(id)
+    }
+
 }

@@ -23,4 +23,6 @@ interface FriendDao {
     @Query("SELECT * FROM friend WHERE friend_id = :id")
     suspend fun findById(id: Int): FriendEntity?
 
+    @Query("SELECT EXISTS(SELECT 1 FROM friend WHERE friend_id = :id AND friend_is_active = 1 LIMIT 1)")
+    suspend fun isFriendActive(id: Int): Boolean
 }

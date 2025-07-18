@@ -15,4 +15,6 @@ interface FriendRepository {
 
     suspend fun updateFriend(friend: Friend)
 
+    suspend fun isFriendActive(id: Int): Boolean
+
 }

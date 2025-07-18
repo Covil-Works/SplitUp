@@ -34,4 +34,7 @@ class FriendRepositoryImpl(
         return dao.isFriendActive(id)
     }
 
+    override suspend fun deactivateFriend(id: Int) {
+        dao.deactivateFriend(id)
+    }
 }

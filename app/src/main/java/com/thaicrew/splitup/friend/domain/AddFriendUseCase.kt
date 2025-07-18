@@ -1,18 +1,21 @@
 package com.thaicrew.splitup.friend.domain
 
 import android.util.Log
-val TAG: String = "AddFriendUseCase"
 
 class AddFriendUseCase(private val repository: FriendRepository) {
+    companion object {
+        private val tag: String = "AddFriendUseCase"
+    }
+
     suspend operator fun invoke(name: String){
         name.trim()
         if (name.isBlank()){
-            Log.i(TAG, "Name is empty!")
+            Log.i(tag, "Name is empty!")
             throw InvalidFriendNameException()
         }
 
         if (repository.findFriendByName(name) != null){
-            Log.i(TAG, "Already have this name!")
+            Log.i(tag, "Already have this name!")
             throw FriendAlreadyExistsException()
         }
 

@@ -9,8 +9,14 @@ interface FriendRepository {
 
     suspend fun findFriendByName(name: String): Friend?
 
+    suspend fun findFriendById(id: Int): Friend?
+
     suspend fun addFriend(friend: Friend)
 
     suspend fun updateFriend(friend: Friend)
+
+    suspend fun isFriendActive(id: Int): Boolean
+
+    suspend fun deactivateFriend(id: Int)
 
 }

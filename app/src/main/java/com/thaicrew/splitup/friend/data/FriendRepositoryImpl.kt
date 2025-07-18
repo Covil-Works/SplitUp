@@ -18,6 +18,10 @@ class FriendRepositoryImpl(
         return dao.findByName(name)?.toDomain()
     }
 
+    override suspend fun findFriendById(id: Int): Friend? {
+        return dao.findById(id)?.toDomain()
+    }
+
     override suspend fun addFriend(friend: Friend) {
         dao.insert(friend.toEntity())
     }
@@ -26,4 +30,11 @@ class FriendRepositoryImpl(
         dao.update(friend.toEntity())
     }
 
+    override suspend fun isFriendActive(id: Int): Boolean {
+        return dao.isFriendActive(id)
+    }
+
+    override suspend fun deactivateFriend(id: Int) {
+        dao.deactivateFriend(id)
+    }
 }

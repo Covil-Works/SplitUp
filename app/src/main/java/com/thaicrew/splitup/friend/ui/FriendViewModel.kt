@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 /**
  * Representa todo o estado do ecrã de Amigos.
@@ -28,11 +30,8 @@ data class FriendScreenState(
     val errorMessage: String? = null
 )
 
-/**
- * O ViewModel para o ecrã de Amigos.
- * Orquestra a lógica da UI e gere o estado do ecrã.
- */
-class FriendViewModel(
+@HiltViewModel
+class FriendViewModel @Inject constructor(
     private val getActiveFriendsUseCase: GetActiveFriendsUseCase,
     private val addFriendUseCase: AddFriendUseCase
     // Mais UseCases (update, delete) seriam adicionados aqui.

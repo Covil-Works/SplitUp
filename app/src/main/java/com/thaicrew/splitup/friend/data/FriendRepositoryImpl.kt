@@ -18,6 +18,10 @@ class FriendRepositoryImpl(
         return dao.findByName(name)?.toDomain()
     }
 
+    override suspend fun findFriendById(id: Int): Friend? {
+        return dao.findById(id)?.toDomain()
+    }
+
     override suspend fun addFriend(friend: Friend) {
         dao.insert(friend.toEntity())
     }

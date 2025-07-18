@@ -19,4 +19,8 @@ interface FriendDao {
 
     @Query("SELECT * FROM friend WHERE friend_name = :name LIMIT 1")
     suspend fun findByName(name: String): FriendEntity?
+
+    @Query("SELECT * FROM friend WHERE friend_id = :id")
+    suspend fun findById(id: Int): FriendEntity?
+
 }

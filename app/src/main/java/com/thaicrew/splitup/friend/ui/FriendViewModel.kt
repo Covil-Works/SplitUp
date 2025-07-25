@@ -15,7 +15,10 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 /**
  * Representa todo o estado do ecrã de Amigos.
@@ -34,29 +37,28 @@ data class FriendScreenState(
 class FriendViewModel @Inject constructor(
     private val getActiveFriendsUseCase: GetActiveFriendsUseCase,
     private val addFriendUseCase: AddFriendUseCase
-    // Mais UseCases (update, delete) seriam adicionados aqui.
+    // UseCases serão adicionados aqui.
+
 ) : ViewModel() {
 
-    // O guardião interno e mutável do estado.
     private val _uiState = MutableStateFlow(FriendScreenState())
-    // A versão pública e somente de leitura que a UI vai observar.
     val uiState: StateFlow<FriendScreenState> = _uiState.asStateFlow()
+    private val _errorEvent = MutableSharedFlow<String>()
+    val errorEvent = _errorEvent.asSharedFlow()
+
 
     init {
-        // Assim que o ViewModel é criado, começa a observar as mudanças na lista de amigos.
         observeFriends()
     }
 
     private fun observeFriends() {
-        getActiveFriendsUseCase() // Chama o UseCase, que retorna um Flow
+        getActiveFriendsUseCase()
             .onEach { friends ->
-                // Sempre que uma nova lista de amigos chega do Flow...
                 _uiState.update { currentState ->
-                    // ...atualizamos o nosso estado com a nova lista.
                     currentState.copy(friends = friends, isLoading = false)
                 }
             }
-            .launchIn(viewModelScope) // Inicia a observação no escopo do ViewModel.
+            .launchIn(viewModelScope)
     }
 
     /**
@@ -65,15 +67,12 @@ class FriendViewModel @Inject constructor(
     fun onAddFriend(name: String) {
         viewModelScope.launch {
             try {
-                // Tenta executar o caso de uso.
                 addFriendUseCase(name)
-                // Se for bem-sucedido, limpa qualquer mensagem de erro antiga.
                 _uiState.update { it.copy(errorMessage = null) }
             } catch (e: InvalidFriendNameException) {
-                // Se apanhar uma exceção de negócio, atualiza o estado com a mensagem de erro.
-                _uiState.update { it.copy(errorMessage = e.message) }
+                _errorEvent.emit(e.message ?: "Nome inválido")
             } catch (e: FriendAlreadyExistsException) {
-                _uiState.update { it.copy(errorMessage = e.message) }
+                _errorEvent.emit(e.message ?: "Amigo já existe")
             }
         }
     }

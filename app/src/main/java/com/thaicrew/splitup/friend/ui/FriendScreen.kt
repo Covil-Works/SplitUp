@@ -47,8 +47,8 @@ fun FriendScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     // Mostra a Snackbar quando houver uma mensagem de erro no estado
-    LaunchedEffect(uiState.errorMessage) {
-        uiState.errorMessage?.let { message ->
+    LaunchedEffect(key1 = true) {
+        viewModel.errorEvent.collect { message ->
             snackbarHostState.showSnackbar(message)
         }
     }

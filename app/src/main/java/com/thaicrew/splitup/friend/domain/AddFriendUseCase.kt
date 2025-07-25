@@ -8,13 +8,13 @@ class AddFriendUseCase(private val repository: FriendRepository) {
     }
 
     suspend operator fun invoke(name: String){
-        name.trim()
+
         if (name.isBlank()){
             Log.i(tag, "Name is empty!")
             throw InvalidFriendNameException()
         }
 
-        if (repository.findFriendByName(name) != null){
+        if (repository.findFriendByName(name.trim()) != null){
             Log.i(tag, "Already have this name!")
             throw FriendAlreadyExistsException()
         }

@@ -1,5 +1,6 @@
 package com.thaicrew.splitup.friend.ui
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.thaicrew.splitup.friend.domain.AddFriendUseCase
@@ -25,12 +26,10 @@ import kotlinx.coroutines.flow.asSharedFlow
  * A UI observará este objeto para saber o que desenhar.
  * @param friends A lista atual de amigos a ser exibida.
  * @param isLoading Indica se os dados iniciais estão a ser carregados.
- * @param errorMessage Uma mensagem de erro a ser exibida, se houver.
  */
 data class FriendScreenState(
     val friends: List<Friend> = emptyList(),
     val isLoading: Boolean = true,
-    val errorMessage: String? = null
 )
 
 @HiltViewModel
@@ -68,7 +67,6 @@ class FriendViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 addFriendUseCase(name)
-                _uiState.update { it.copy(errorMessage = null) }
             } catch (e: InvalidFriendNameException) {
                 _errorEvent.emit(e.message ?: "Nome inválido")
             } catch (e: FriendAlreadyExistsException) {

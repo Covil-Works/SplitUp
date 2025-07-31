@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.IconButton
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.thaicrew.splitup.friend.domain.Friend
@@ -44,7 +45,6 @@ import com.thaicrew.splitup.friend.domain.Friend
 fun FriendScreen(
     viewModel: FriendViewModel
 ) {
-    // Recolhe o estado do ViewModel de forma segura em relação ao ciclo de vida
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -58,6 +58,19 @@ fun FriendScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { paddingValues ->
+
+        when (val dialogState = uiState.dialogState) {
+            is DialogState.ConfirmDeactivation -> {
+                DeletionConfirmationDialog(
+                    friendName = dialogState.friend.name,
+                    onConfirm = { viewModel.onSoftDeleteConfirmed() },
+                    onDismiss = { viewModel.onDialogDismiss() }
+                )
+            }
+            DialogState.Hidden -> {
+            }
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -77,7 +90,7 @@ fun FriendScreen(
             } else {
                 FriendList(
                     friends = uiState.friends,
-                    onDeleteFriend = { friend -> viewModel.onSoftDeleteFriend(friend)
+                    onDeleteFriend = { friend -> viewModel.onSoftDeleteTriggered(friend)
                     }
                 )
             }
@@ -171,4 +184,27 @@ private fun FriendListItem(
             }
         }
     }
+}
+
+@Composable
+private fun DeletionConfirmationDialog(
+    friendName: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Confirmar exclusão?") },
+        text = { Text("Você tem certeza que deseja desativar o amigo '$friendName'? Ele não poderá ser adicionado em novas comandas.") },
+        dismissButton = {
+            Button(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        },
+        confirmButton = {
+            Button(onClick = onConfirm) {
+                Text("Confirmar")
+            }
+        }
+    )
 }

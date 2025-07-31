@@ -2,7 +2,7 @@ package com.thaicrew.splitup.friend.domain
 
 import android.util.Log
 
-class DeactivateFriendUseCase(private val repository: FriendRepository) {
+class SoftDeleteFriendUseCase(private val repository: FriendRepository) {
 
     companion object {
         private const val TAG = "DeactivateFriendUseCase"

@@ -5,6 +5,7 @@ import com.thaicrew.splitup.friend.data.FriendRepositoryImpl
 import com.thaicrew.splitup.friend.domain.AddFriendUseCase
 import com.thaicrew.splitup.friend.domain.FriendRepository
 import com.thaicrew.splitup.friend.domain.GetActiveFriendsUseCase
+import com.thaicrew.splitup.friend.domain.SoftDeleteFriendUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -29,5 +30,10 @@ object FriendFeatureModule {
     @Provides
     fun provideGetActiveFriendsUseCase(repository: FriendRepository): GetActiveFriendsUseCase {
         return GetActiveFriendsUseCase(repository)
+    }
+
+    @Provides
+    fun provideSoftDeleteFriendsUseCase(repository: FriendRepository): SoftDeleteFriendUseCase {
+        return SoftDeleteFriendUseCase(repository)
     }
 }

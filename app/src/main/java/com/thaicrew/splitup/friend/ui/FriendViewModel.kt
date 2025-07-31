@@ -6,8 +6,11 @@ import androidx.lifecycle.viewModelScope
 import com.thaicrew.splitup.friend.domain.AddFriendUseCase
 import com.thaicrew.splitup.friend.domain.Friend
 import com.thaicrew.splitup.friend.domain.FriendAlreadyExistsException
+import com.thaicrew.splitup.friend.domain.FriendAlreadyInactiveException
+import com.thaicrew.splitup.friend.domain.FriendNotFoundException
 import com.thaicrew.splitup.friend.domain.GetActiveFriendsUseCase
 import com.thaicrew.splitup.friend.domain.InvalidFriendNameException
+import com.thaicrew.splitup.friend.domain.SoftDeleteFriendUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,30 +24,19 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
-/**
- * Representa todo o estado do ecrã de Amigos.
- * A UI observará este objeto para saber o que desenhar.
- * @param friends A lista atual de amigos a ser exibida.
- * @param isLoading Indica se os dados iniciais estão a ser carregados.
- */
-data class FriendScreenState(
-    val friends: List<Friend> = emptyList(),
-    val isLoading: Boolean = true,
-)
-
 @HiltViewModel
 class FriendViewModel @Inject constructor(
+    // Todos os use cases deverão estar aqui
     private val getActiveFriendsUseCase: GetActiveFriendsUseCase,
-    private val addFriendUseCase: AddFriendUseCase
-    // UseCases serão adicionados aqui.
+    private val addFriendUseCase: AddFriendUseCase,
+    private val softDeleteFriendUseCase: SoftDeleteFriendUseCase
 
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FriendScreenState())
     val uiState: StateFlow<FriendScreenState> = _uiState.asStateFlow()
-    private val _errorEvent = MutableSharedFlow<String>()
-    val errorEvent = _errorEvent.asSharedFlow()
-
+    private val _uiEvent = MutableSharedFlow<UiEvent>()
+    val uiEvent = _uiEvent.asSharedFlow()
 
     init {
         observeFriends()
@@ -68,10 +60,37 @@ class FriendViewModel @Inject constructor(
             try {
                 addFriendUseCase(name)
             } catch (e: InvalidFriendNameException) {
-                _errorEvent.emit(e.message ?: "Nome inválido")
+                _uiEvent.emit(UiEvent.ShowSnackbar(e.message ?: "Amigo não encontrado"))
             } catch (e: FriendAlreadyExistsException) {
-                _errorEvent.emit(e.message ?: "Amigo já existe")
+                _uiEvent.emit(UiEvent.ShowSnackbar(e.message ?: "Amigo já existe"))
             }
         }
+    }
+
+    fun onSoftDeleteTriggered(friend: Friend) {
+        _uiState.update { it.copy(dialogState = DialogState.ConfirmDeactivation(friend)) }
+    }
+
+    fun onDialogDismiss() {
+        _uiState.update { it.copy(dialogState = DialogState.Hidden) }
+    }
+
+    fun onSoftDeleteConfirmed() {
+        val friendToDelete = (uiState.value.dialogState as? DialogState.ConfirmDeactivation)?.friend
+
+        if (friendToDelete != null) {
+            viewModelScope.launch {
+                try {
+                    softDeleteFriendUseCase(friendToDelete.id)
+                } catch (e: FriendNotFoundException) {
+                    _uiEvent.emit(UiEvent.ShowSnackbar(e.message ?: "Amigo não encontrado"))
+                } catch (e: FriendAlreadyInactiveException) {
+                    _uiEvent.emit(UiEvent.ShowSnackbar(e.message ?: "Amigo já está inativo"))
+                } finally {
+                    onDialogDismiss()
+                }
+            }
+        }
+
     }
 }

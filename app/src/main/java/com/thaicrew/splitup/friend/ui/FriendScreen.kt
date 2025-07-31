@@ -31,6 +31,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.IconButton
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.thaicrew.splitup.friend.domain.Friend
 
@@ -73,7 +75,11 @@ fun FriendScreen(
             if (uiState.isLoading) {
                 CircularProgressIndicator()
             } else {
-                FriendList(friends = uiState.friends)
+                FriendList(
+                    friends = uiState.friends,
+                    onDeleteFriend = { friend -> viewModel.onSoftDeleteFriend(friend)
+                    }
+                )
             }
         }
     }
@@ -113,7 +119,8 @@ private fun AddFriendInput(
  */
 @Composable
 private fun FriendList(
-    friends: List<Friend>
+    friends: List<Friend>,
+    onDeleteFriend: (Friend) -> Unit
 ) {
     if (friends.isEmpty()) {
         Text("Nenhum amigo adicionado ainda.")
@@ -123,7 +130,10 @@ private fun FriendList(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(friends, key = { friend -> friend.id }) { friend ->
-                FriendListItem(friend = friend)
+                FriendListItem(
+                    friend = friend,
+                    onDeleteClick = onDeleteFriend
+                )
             }
         }
     }
@@ -134,15 +144,31 @@ private fun FriendList(
  */
 @Composable
 private fun FriendListItem(
-    friend: Friend
+    friend: Friend,
+    onDeleteClick: (Friend) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
     ) {
-        Text(
-            text = friend.name,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(16.dp)
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp), // Ajuste no padding
+            verticalAlignment = Alignment.CenterVertically, // Alinha verticalmente
+            horizontalArrangement = Arrangement.SpaceBetween // Garante o espaçamento
+        ) {
+            Text(
+                text = friend.name,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.weight(1f) // Ocupa o espaço disponível
+            )
+            IconButton(onClick = { onDeleteClick(friend) }) { // Ação de clique
+                Icon(
+                    imageVector = Icons.Default.Delete, // Ícone de lixeira
+                    contentDescription = "Deletar Amigo",
+                    tint = MaterialTheme.colorScheme.error // Boa prática usar a cor de erro
+                )
+            }
+        }
     }
 }

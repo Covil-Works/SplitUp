@@ -1,36 +1,34 @@
 package com.thaicrew.splitup.friend.ui
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.thaicrew.splitup.friend.domain.AddFriendResult
 import com.thaicrew.splitup.friend.domain.AddFriendUseCase
 import com.thaicrew.splitup.friend.domain.Friend
-import com.thaicrew.splitup.friend.domain.FriendAlreadyExistsException
 import com.thaicrew.splitup.friend.domain.FriendAlreadyInactiveException
 import com.thaicrew.splitup.friend.domain.FriendNotFoundException
 import com.thaicrew.splitup.friend.domain.GetActiveFriendsUseCase
-import com.thaicrew.splitup.friend.domain.InvalidFriendNameException
+import com.thaicrew.splitup.friend.domain.ReactivateAddFriendUseCase
 import com.thaicrew.splitup.friend.domain.SoftDeleteFriendUseCase
+import com.thaicrew.splitup.friend.domain.SoftDeleteFriendUseCaseResult
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
-import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 
 @HiltViewModel
 class FriendViewModel @Inject constructor(
-    // Todos os use cases deverão estar aqui
     private val getActiveFriendsUseCase: GetActiveFriendsUseCase,
     private val addFriendUseCase: AddFriendUseCase,
-    private val softDeleteFriendUseCase: SoftDeleteFriendUseCase
-
+    private val softDeleteFriendUseCase: SoftDeleteFriendUseCase,
+    private val reactivateFriendUseCase: ReactivateAddFriendUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FriendScreenState())
@@ -54,15 +52,30 @@ class FriendViewModel @Inject constructor(
 
     /**
      * Função chamada pela UI para tratar do evento de adicionar um novo amigo.
+     * Agora usa a lógica de resultado explícito com a sealed class.
      */
     fun onAddFriend(name: String) {
         viewModelScope.launch {
-            try {
-                addFriendUseCase(name)
-            } catch (e: InvalidFriendNameException) {
-                _uiEvent.emit(UiEvent.ShowSnackbar(e.message ?: "Amigo não encontrado"))
-            } catch (e: FriendAlreadyExistsException) {
-                _uiEvent.emit(UiEvent.ShowSnackbar(e.message ?: "Amigo já existe"))
+            when (val result = addFriendUseCase(name)) {
+                is AddFriendResult.Success -> {
+                    _uiEvent.emit(UiEvent.ShowSnackbar("Amigo adicionado!"))
+                }
+
+                is AddFriendResult.AlreadyExistsActive -> {
+                    _uiEvent.emit(UiEvent.ShowSnackbar("O amigo '${result.friend.name}' já está na lista."))
+                }
+
+                is AddFriendResult.NeedsReactivation -> {
+                    _uiState.update { it.copy(dialogState = DialogState.ConfirmReactivation(result.friend)) }
+                }
+
+                is AddFriendResult.Error -> {
+                    _uiEvent.emit(
+                        UiEvent.ShowSnackbar(
+                            result.exception.message ?: "Ocorreu um erro."
+                        )
+                    )
+                }
             }
         }
     }
@@ -75,22 +88,43 @@ class FriendViewModel @Inject constructor(
         _uiState.update { it.copy(dialogState = DialogState.Hidden) }
     }
 
+    /**
+     * Chamado quando o usuário confirma a reativação no diálogo.
+     */
+    fun onReactivationConfirmed() {
+        val friendToReactivate =
+            (uiState.value.dialogState as? DialogState.ConfirmReactivation)?.friend
+        onDialogDismiss()
+
+        if (friendToReactivate != null) {
+            viewModelScope.launch {
+                reactivateFriendUseCase(friendToReactivate)
+                _uiEvent.emit(UiEvent.ShowSnackbar("O amigo '${friendToReactivate.name}' foi reativado!"))
+            }
+        }
+    }
+
     fun onSoftDeleteConfirmed() {
         val friendToDelete = (uiState.value.dialogState as? DialogState.ConfirmDeactivation)?.friend
+        onDialogDismiss()
 
         if (friendToDelete != null) {
             viewModelScope.launch {
-                try {
-                    softDeleteFriendUseCase(friendToDelete.id)
-                } catch (e: FriendNotFoundException) {
-                    _uiEvent.emit(UiEvent.ShowSnackbar(e.message ?: "Amigo não encontrado"))
-                } catch (e: FriendAlreadyInactiveException) {
-                    _uiEvent.emit(UiEvent.ShowSnackbar(e.message ?: "Amigo já está inativo"))
-                } finally {
-                    onDialogDismiss()
+                // O bloco try-catch foi substituído por um 'when' mais limpo e seguro
+                when (softDeleteFriendUseCase(friendToDelete.id)) {
+                    is SoftDeleteFriendUseCaseResult.Success -> {
+                        _uiEvent.emit(UiEvent.ShowSnackbar("Amigo desativado com sucesso."))
+                    }
+
+                    is SoftDeleteFriendUseCaseResult.FriendNotFound -> {
+                        _uiEvent.emit(UiEvent.ShowSnackbar("Erro: Amigo não encontrado."))
+                    }
+
+                    is SoftDeleteFriendUseCaseResult.AlreadyInactive -> {
+                        _uiEvent.emit(UiEvent.ShowSnackbar("Este amigo já estava desativado."))
+                    }
                 }
             }
         }
-
     }
 }

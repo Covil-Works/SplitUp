@@ -1,29 +1,35 @@
 package com.thaicrew.splitup.friend.domain
 
 import android.util.Log
-
 class AddFriendUseCase(private val repository: FriendRepository) {
-    companion object {
-        private val tag: String = "AddFriendUseCase"
-    }
 
-    suspend operator fun invoke(name: String){
+    suspend operator fun invoke(name: String): AddFriendResult {
+        val trimmedName = name.trim()
 
-        if (name.isBlank()){
-            Log.i(tag, "Name is empty!")
-            throw InvalidFriendNameException()
+        if (trimmedName.isBlank()) {
+            return AddFriendResult.Error(InvalidFriendNameException("O nome do amigo não pode ser vazio."))
         }
 
-        if (repository.findFriendByName(name.trim()) != null){
-            Log.i(tag, "Already have this name!")
-            throw FriendAlreadyExistsException()
+        val existingFriend = repository.findFriendByName(trimmedName)
+
+        return if (existingFriend == null) {
+
+            val newFriend = Friend(name = trimmedName, isActive = true)
+            repository.addFriend(newFriend)
+            AddFriendResult.Success
+
+        } else if (existingFriend.isActive) {
+            AddFriendResult.AlreadyExistsActive(existingFriend)
+
+        } else {
+            AddFriendResult.NeedsReactivation(existingFriend)
         }
-
-        val newFriend = Friend(name = name.trim(), isActive = true)
-
-        repository.addFriend(newFriend)
     }
 }
 
-class InvalidFriendNameException : Exception("O nome do amigo não pode ser vazio.")
-class FriendAlreadyExistsException : Exception("Um amigo com este nome já existe.")
+sealed class AddFriendResult {
+    data object Success : AddFriendResult()
+    data class AlreadyExistsActive(val friend: Friend) : AddFriendResult()
+    data class NeedsReactivation(val friend: Friend) : AddFriendResult()
+    data class Error(val exception: Exception) : AddFriendResult()
+}

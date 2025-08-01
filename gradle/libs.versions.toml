@@ -1,6 +1,6 @@
 [versions]
 agp = "8.10.0"
-kotlin = "2.0.21"
+kotlin = "2.0.0"
 coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -8,8 +8,12 @@ espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.9.0"
 activityCompose = "1.10.1"
 composeBom = "2024.09.00"
-room = "2.6.1"
-ksp = "2.0.0-1.0.22"
+room = "2.7.2"
+ksp = "2.0.0-1.0.21"
+lifecycleViewmodelCompose = "2.8.3"
+materialIcons = "1.6.8"
+lifecycleRuntimeCompose = "2.8.3"
+hilt = "2.51.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -26,16 +30,18 @@ androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
-# O 'runtime' contém as funcionalidades centrais do Room, necessárias quando o app está em execução.
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
-# O 'ktx' adiciona suporte a funcionalidades do Kotlin, como Coroutines (suspend fun), essencial para operações de banco de dados assíncronas.
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
-# O 'compiler' é o processador de anotações. Ele "lê" nossas anotações (@Entity, @Dao) e gera o código Java/Kotlin por baixo dos panos. Ele só é necessário durante a compilação.
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
+androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "materialIcons" }
+androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleRuntimeCompose" }
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-# KSP é a ferramenta que permite que o 'room-compiler' funcione de forma eficiente em projetos Kotlin.
 kotlin-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+hilt-android-gradle-plugin = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }

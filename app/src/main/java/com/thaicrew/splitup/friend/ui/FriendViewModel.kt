@@ -35,9 +35,8 @@ class FriendViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(FriendScreenState())
     val uiState: StateFlow<FriendScreenState> = _uiState.asStateFlow()
-    private val _errorEvent = MutableSharedFlow<String>()
-    val errorEvent = _errorEvent.asSharedFlow()
-
+    private val _uiEvent = MutableSharedFlow<UiEvent>()
+    val uiEvent = _uiEvent.asSharedFlow()
 
     init {
         observeFriends()
@@ -61,9 +60,9 @@ class FriendViewModel @Inject constructor(
             try {
                 addFriendUseCase(name)
             } catch (e: InvalidFriendNameException) {
-                _errorEvent.emit(e.message ?: "Nome inválido")
+                _uiEvent.emit(UiEvent.ShowSnackbar(e.message ?: "Amigo não encontrado"))
             } catch (e: FriendAlreadyExistsException) {
-                _errorEvent.emit(e.message ?: "Amigo já existe")
+                _uiEvent.emit(UiEvent.ShowSnackbar(e.message ?: "Amigo já existe"))
             }
         }
     }
@@ -84,25 +83,14 @@ class FriendViewModel @Inject constructor(
                 try {
                     softDeleteFriendUseCase(friendToDelete.id)
                 } catch (e: FriendNotFoundException) {
-                    _errorEvent.emit(e.message ?: "Amigo não encontrado")
+                    _uiEvent.emit(UiEvent.ShowSnackbar(e.message ?: "Amigo não encontrado"))
                 } catch (e: FriendAlreadyInactiveException) {
-                    _errorEvent.emit(e.message ?: "Amigo já está inativo")
+                    _uiEvent.emit(UiEvent.ShowSnackbar(e.message ?: "Amigo já está inativo"))
                 } finally {
                     onDialogDismiss()
                 }
             }
         }
 
-    }
-    fun onSoftDeleteFriend(friend: Friend) {
-        viewModelScope.launch {
-            try {
-                softDeleteFriendUseCase(friend.id)
-            } catch (e: FriendNotFoundException) {
-                _errorEvent.emit(e.message ?: "Amigo não encontrado")
-            } catch (e: FriendAlreadyInactiveException) {
-                _errorEvent.emit(e.message ?: "Amigo já está inativo")
-            }
-        }
     }
 }

@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
@@ -17,7 +19,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -34,6 +35,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.SoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.thaicrew.splitup.friend.domain.Friend
 
@@ -47,11 +54,17 @@ fun FriendScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
 
     // Mostra a Snackbar quando houver uma mensagem de erro no estado
     LaunchedEffect(key1 = true) {
-        viewModel.errorEvent.collect { message ->
-            snackbarHostState.showSnackbar(message)
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is UiEvent.ShowSnackbar -> {
+                    snackbarHostState.showSnackbar(event.message)
+                }
+            }
         }
     }
 
@@ -81,7 +94,9 @@ fun FriendScreen(
             AddFriendInput(
                 onAddFriend = { name ->
                     viewModel.onAddFriend(name)
-                }
+                },
+                keyboardController = keyboardController,
+                focusManager = focusManager
             )
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -103,9 +118,19 @@ fun FriendScreen(
  */
 @Composable
 private fun AddFriendInput(
-    onAddFriend: (String) -> Unit
+    onAddFriend: (String) -> Unit,
+    keyboardController: SoftwareKeyboardController?,
+    focusManager: FocusManager
 ) {
     var name by remember { mutableStateOf("") }
+    val onAdd = {
+        if (name.isNotBlank()) {
+            keyboardController?.hide()
+            focusManager.clearFocus()
+            onAddFriend(name)
+            name = ""
+        }
+    }
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -116,12 +141,16 @@ private fun AddFriendInput(
             value = name,
             onValueChange = { name = it },
             label = { Text("Nome do Amigo") },
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = { onAdd() }
+            )
         )
-        Button(onClick = {
-            onAddFriend(name)
-            name = "" // Limpa o campo após adicionar
-        }) {
+        Button(onClick = { onAdd() }) {
             Icon(imageVector = Icons.Default.Add, contentDescription = "Adicionar Amigo")
         }
     }

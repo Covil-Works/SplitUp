@@ -94,6 +94,7 @@ class FriendViewModel @Inject constructor(
     fun onReactivationConfirmed() {
         val friendToReactivate =
             (uiState.value.dialogState as? DialogState.ConfirmReactivation)?.friend
+        onDialogDismiss()
 
         if (friendToReactivate != null) {
             viewModelScope.launch {
@@ -101,11 +102,11 @@ class FriendViewModel @Inject constructor(
                 _uiEvent.emit(UiEvent.ShowSnackbar("O amigo '${friendToReactivate.name}' foi reativado!"))
             }
         }
-        onDialogDismiss()
     }
 
     fun onSoftDeleteConfirmed() {
         val friendToDelete = (uiState.value.dialogState as? DialogState.ConfirmDeactivation)?.friend
+        onDialogDismiss()
 
         if (friendToDelete != null) {
             viewModelScope.launch {
@@ -123,8 +124,6 @@ class FriendViewModel @Inject constructor(
                         _uiEvent.emit(UiEvent.ShowSnackbar("Este amigo já estava desativado."))
                     }
                 }
-                // O diálogo é fechado em todos os casos
-                onDialogDismiss()
             }
         }
     }

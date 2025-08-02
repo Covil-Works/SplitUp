@@ -26,6 +26,3 @@ class SoftDeleteFriendUseCase(private val repository: FriendRepository) {
         Log.i(TAG, "Friend with ID $id successfully deactivated.")
     }
 }
-
-class FriendNotFoundException(override val message: String) : Exception(message)
-class FriendAlreadyInactiveException(override val message: String) : Exception(message)

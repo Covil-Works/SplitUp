@@ -14,11 +14,15 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -31,16 +35,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.ui.focus.FocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.thaicrew.splitup.friend.domain.Friend
 
@@ -72,6 +72,7 @@ fun FriendScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { paddingValues ->
 
+        // O 'when' agora lida com todos os estados possíveis do diálogo
         when (val dialogState = uiState.dialogState) {
             is DialogState.ConfirmDeactivation -> {
                 DeletionConfirmationDialog(
@@ -80,7 +81,16 @@ fun FriendScreen(
                     onDismiss = { viewModel.onDialogDismiss() }
                 )
             }
+            // NOVO BLOCO PARA O DIÁLOGO DE REATIVAÇÃO
+            is DialogState.ConfirmReactivation -> {
+                ReactivationConfirmationDialog(
+                    friendName = dialogState.friend.name,
+                    onConfirm = { viewModel.onReactivationConfirmed() },
+                    onDismiss = { viewModel.onDialogDismiss() }
+                )
+            }
             DialogState.Hidden -> {
+                // Nenhum diálogo para mostrar
             }
         }
 
@@ -233,6 +243,30 @@ private fun DeletionConfirmationDialog(
         confirmButton = {
             Button(onClick = onConfirm) {
                 Text("Confirmar")
+            }
+        }
+    )
+}
+
+// NOVO COMPONENTE DE DIÁLOGO
+@Composable
+private fun ReactivationConfirmationDialog(
+    friendName: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Confirmar reativação?") },
+        text = { Text("O amigo '$friendName' já existe mas está desativado. Deseja reativá-lo?") },
+        dismissButton = {
+            Button(onClick = onDismiss) {
+                Text("Não")
+            }
+        },
+        confirmButton = {
+            Button(onClick = onConfirm) {
+                Text("Sim, reativar")
             }
         }
     )

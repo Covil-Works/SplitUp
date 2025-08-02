@@ -7,6 +7,7 @@ import com.thaicrew.splitup.friend.domain.FriendRepository
 import com.thaicrew.splitup.friend.domain.GetActiveFriendsUseCase
 import com.thaicrew.splitup.friend.domain.ReactivateAddFriendUseCase
 import com.thaicrew.splitup.friend.domain.SoftDeleteFriendUseCase
+import com.thaicrew.splitup.friend.domain.UpdateFriendUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -41,5 +42,10 @@ object FriendFeatureModule {
     @Provides
     fun provideReactivateFriendUseCase(repository: FriendRepository): ReactivateAddFriendUseCase {
         return ReactivateAddFriendUseCase(repository)
+    }
+
+    @Provides
+    fun provideUpdateFriendUseCase(repository: FriendRepository): UpdateFriendUseCase {
+        return UpdateFriendUseCase(repository)
     }
 }

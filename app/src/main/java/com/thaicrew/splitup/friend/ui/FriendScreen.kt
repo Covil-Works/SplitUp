@@ -15,6 +15,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -72,7 +73,6 @@ fun FriendScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { paddingValues ->
 
-        // O 'when' agora lida com todos os estados possíveis do diálogo
         when (val dialogState = uiState.dialogState) {
             is DialogState.ConfirmDeactivation -> {
                 DeletionConfirmationDialog(
@@ -81,7 +81,6 @@ fun FriendScreen(
                     onDismiss = { viewModel.onDialogDismiss() }
                 )
             }
-            // NOVO BLOCO PARA O DIÁLOGO DE REATIVAÇÃO
             is DialogState.ConfirmReactivation -> {
                 ReactivationConfirmationDialog(
                     friendName = dialogState.friend.name,
@@ -89,8 +88,14 @@ fun FriendScreen(
                     onDismiss = { viewModel.onDialogDismiss() }
                 )
             }
+            is DialogState.ShowEdit -> {
+                EditFriendDialog(
+                    friend = dialogState.friend,
+                    onConfirm = { newName -> viewModel.onEditConfirmed(dialogState.friend, newName) },
+                    onDismiss = { viewModel.onDialogDismiss() }
+                )
+            }
             DialogState.Hidden -> {
-                // Nenhum diálogo para mostrar
             }
         }
 
@@ -115,8 +120,8 @@ fun FriendScreen(
             } else {
                 FriendList(
                     friends = uiState.friends,
-                    onDeleteFriend = { friend -> viewModel.onSoftDeleteTriggered(friend)
-                    }
+                    onDeleteFriend = { friend -> viewModel.onSoftDeleteTriggered(friend) },
+                    onEditFriend = { friend -> viewModel.onEditTriggered(friend) }
                 )
             }
         }
@@ -172,7 +177,8 @@ private fun AddFriendInput(
 @Composable
 private fun FriendList(
     friends: List<Friend>,
-    onDeleteFriend: (Friend) -> Unit
+    onDeleteFriend: (Friend) -> Unit,
+    onEditFriend: (Friend) -> Unit
 ) {
     if (friends.isEmpty()) {
         Text("Nenhum amigo adicionado ainda.")
@@ -184,7 +190,8 @@ private fun FriendList(
             items(friends, key = { friend -> friend.id }) { friend ->
                 FriendListItem(
                     friend = friend,
-                    onDeleteClick = onDeleteFriend
+                    onDeleteClick = onDeleteFriend,
+                    onEditClick = onEditFriend
                 )
             }
         }
@@ -197,7 +204,8 @@ private fun FriendList(
 @Composable
 private fun FriendListItem(
     friend: Friend,
-    onDeleteClick: (Friend) -> Unit
+    onDeleteClick: (Friend) -> Unit,
+    onEditClick: (Friend) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -214,6 +222,12 @@ private fun FriendListItem(
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.weight(1f) // Ocupa o espaço disponível
             )
+            IconButton(onClick = { onEditClick(friend) }) {
+                Icon(
+                    imageVector = Icons.Default.Edit, // Ícone de lápis
+                    contentDescription = "Editar Amigo",
+                )
+            }
             IconButton(onClick = { onDeleteClick(friend) }) { // Ação de clique
                 Icon(
                     imageVector = Icons.Default.Delete, // Ícone de lixeira
@@ -248,7 +262,6 @@ private fun DeletionConfirmationDialog(
     )
 }
 
-// NOVO COMPONENTE DE DIÁLOGO
 @Composable
 private fun ReactivationConfirmationDialog(
     friendName: String,
@@ -271,3 +284,50 @@ private fun ReactivationConfirmationDialog(
         }
     )
 }
+
+    @Composable
+    private fun EditFriendDialog(
+        friend: Friend,
+        onConfirm: (String) -> Unit,
+        onDismiss: () -> Unit
+    ) {
+        var name by remember { mutableStateOf(friend.name) }
+        val focusManager = LocalFocusManager.current
+
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("Editar amigo") },
+            text = {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Nome do Amigo") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = {
+                        if (name.isNotBlank()) {
+                            focusManager.clearFocus()
+                            onConfirm(name)
+                        }
+                    })
+                )
+            },
+            dismissButton = {
+                Button(onClick = onDismiss) {
+                    Text("Cancelar")
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (name.isNotBlank()) {
+                            onConfirm(name)
+                        }
+                    },
+                    enabled = name.isNotBlank() // O botão é desativado se o nome estiver vazio
+                ) {
+                    Text("Salvar")
+                }
+            }
+        )
+    }

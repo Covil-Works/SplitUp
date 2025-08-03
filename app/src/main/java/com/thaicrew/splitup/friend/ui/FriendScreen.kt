@@ -296,7 +296,7 @@ private fun ReactivationConfirmationDialog(
 
         AlertDialog(
             onDismissRequest = onDismiss,
-            title = { Text("Editar Amigo") },
+            title = { Text("Editar amigo") },
             text = {
                 OutlinedTextField(
                     value = name,

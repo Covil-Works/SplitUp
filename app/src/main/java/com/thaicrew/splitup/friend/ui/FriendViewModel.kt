@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.thaicrew.splitup.friend.domain.AddFriendResult
 import com.thaicrew.splitup.friend.domain.AddFriendUseCase
 import com.thaicrew.splitup.friend.domain.Friend
-import com.thaicrew.splitup.friend.domain.FriendAlreadyInactiveException
-import com.thaicrew.splitup.friend.domain.FriendNotFoundException
+import com.thaicrew.splitup.friend.domain.UpdateFriendResult
+import com.thaicrew.splitup.friend.domain.UpdateFriendUseCase
 import com.thaicrew.splitup.friend.domain.GetActiveFriendsUseCase
 import com.thaicrew.splitup.friend.domain.ReactivateAddFriendUseCase
 import com.thaicrew.splitup.friend.domain.SoftDeleteFriendUseCase
@@ -28,7 +28,8 @@ class FriendViewModel @Inject constructor(
     private val getActiveFriendsUseCase: GetActiveFriendsUseCase,
     private val addFriendUseCase: AddFriendUseCase,
     private val softDeleteFriendUseCase: SoftDeleteFriendUseCase,
-    private val reactivateFriendUseCase: ReactivateAddFriendUseCase
+    private val reactivateFriendUseCase: ReactivateAddFriendUseCase,
+    private val updateFriendUseCase: UpdateFriendUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FriendScreenState())
@@ -123,6 +124,37 @@ class FriendViewModel @Inject constructor(
                     is SoftDeleteFriendUseCaseResult.AlreadyInactive -> {
                         _uiEvent.emit(UiEvent.ShowSnackbar("Este amigo já estava desativado."))
                     }
+                }
+            }
+        }
+    }
+
+    /**
+     * Chamado pela UI quando o botão de editar é clicado.
+     * Atualiza o estado para mostrar o diálogo de edição.
+     */
+    fun onEditTriggered(friend: Friend) {
+        _uiState.update { it.copy(dialogState = DialogState.ShowEdit(friend)) }
+    }
+
+    /**
+     * Chamado quando o usuário confirma a edição no diálogo.
+     * Invoca o caso de uso e trata o resultado.
+     */
+    fun onEditConfirmed(friend: Friend, newName: String) {
+        viewModelScope.launch {
+            when (val result = updateFriendUseCase(friend, newName)) {
+                is UpdateFriendResult.Success -> {
+                    _uiEvent.emit(UiEvent.ShowSnackbar("Amigo atualizado com sucesso!"))
+                    onDialogDismiss() // Fecha o diálogo em caso de sucesso
+                }
+                is UpdateFriendResult.Error -> {
+                    _uiEvent.emit(
+                        UiEvent.ShowSnackbar(
+                            result.exception.message ?: "Ocorreu um erro desconhecido."
+                        )
+                    )
+                    // Opcional: manter o diálogo aberto em caso de erro para o usuário corrigir.
                 }
             }
         }

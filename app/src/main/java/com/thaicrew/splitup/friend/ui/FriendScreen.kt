@@ -44,6 +44,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.thaicrew.splitup.friend.domain.Friend
+import timber.log.Timber
 
 /**
  * O ecrã principal que conecta o ViewModel à UI.
@@ -58,11 +59,14 @@ fun FriendScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
+    Timber.d("FriendScreen em recomposição. DialogState: ${uiState.dialogState::class.simpleName}, Loading: ${uiState.isLoading}")
+
     // Mostra a Snackbar quando houver uma mensagem de erro no estado
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collect { event ->
             when (event) {
                 is UiEvent.ShowSnackbar -> {
+                    Timber.i("Recebido UiEvent para mostrar Snackbar com a mensagem: '${event.message}'")
                     snackbarHostState.showSnackbar(event.message)
                 }
             }
@@ -77,25 +81,44 @@ fun FriendScreen(
             is DialogState.ConfirmDeactivation -> {
                 DeletionConfirmationDialog(
                     friendName = dialogState.friend.name,
-                    onConfirm = { viewModel.onSoftDeleteConfirmed() },
-                    onDismiss = { viewModel.onDialogDismiss() }
+                    onConfirm = {
+                        Timber.d("Dialog 'ConfirmDeactivation' teve o botão de confirmação clicado.")
+                        viewModel.onSoftDeleteConfirmed()
+                    },
+                    onDismiss = {
+                        Timber.d("Dialog 'ConfirmDeactivation' foi dispensado.")
+                        viewModel.onDialogDismiss()
+                    }
                 )
             }
             is DialogState.ConfirmReactivation -> {
                 ReactivationConfirmationDialog(
                     friendName = dialogState.friend.name,
-                    onConfirm = { viewModel.onReactivationConfirmed() },
-                    onDismiss = { viewModel.onDialogDismiss() }
+                    onConfirm = {
+                        Timber.d("Dialog 'ConfirmReactivation' teve o botão de confirmação clicado.")
+                        viewModel.onReactivationConfirmed()
+                    },
+                    onDismiss = {
+                        Timber.d("Dialog 'ConfirmReactivation' foi dispensado.")
+                        viewModel.onDialogDismiss()
+                    }
                 )
             }
             is DialogState.ShowEdit -> {
                 EditFriendDialog(
                     friend = dialogState.friend,
-                    onConfirm = { newName -> viewModel.onEditConfirmed(dialogState.friend, newName) },
-                    onDismiss = { viewModel.onDialogDismiss() }
+                    onConfirm = { newName ->
+                        Timber.d("Dialog 'ShowEdit' teve o botão de confirmação clicado com o novo nome: '$newName'")
+                        viewModel.onEditConfirmed(dialogState.friend, newName)
+                    },
+                    onDismiss = {
+                        Timber.d("Dialog 'ShowEdit' foi dispensado.")
+                        viewModel.onDialogDismiss()
+                    }
                 )
             }
             DialogState.Hidden -> {
+                // Nenhum log necessário quando o diálogo está oculto.
             }
         }
 
@@ -108,6 +131,7 @@ fun FriendScreen(
         ) {
             AddFriendInput(
                 onAddFriend = { name ->
+                    // O log desta ação está na ViewModel, que é o correto.
                     viewModel.onAddFriend(name)
                 },
                 keyboardController = keyboardController,
@@ -120,8 +144,14 @@ fun FriendScreen(
             } else {
                 FriendList(
                     friends = uiState.friends,
-                    onDeleteFriend = { friend -> viewModel.onSoftDeleteTriggered(friend) },
-                    onEditFriend = { friend -> viewModel.onEditTriggered(friend) }
+                    onDeleteFriend = { friend ->
+                        Timber.d("Botão 'Delete' clicado para o amigo: '${friend.name}' (ID: ${friend.id})")
+                        viewModel.onSoftDeleteTriggered(friend)
+                    },
+                    onEditFriend = { friend ->
+                        Timber.d("Botão 'Edit' clicado para o amigo: '${friend.name}' (ID: ${friend.id})")
+                        viewModel.onEditTriggered(friend)
+                    }
                 )
             }
         }
@@ -213,26 +243,26 @@ private fun FriendListItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp), // Ajuste no padding
-            verticalAlignment = Alignment.CenterVertically, // Alinha verticalmente
-            horizontalArrangement = Arrangement.SpaceBetween // Garante o espaçamento
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
                 text = friend.name,
                 style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.weight(1f) // Ocupa o espaço disponível
+                modifier = Modifier.weight(1f)
             )
             IconButton(onClick = { onEditClick(friend) }) {
                 Icon(
-                    imageVector = Icons.Default.Edit, // Ícone de lápis
+                    imageVector = Icons.Default.Edit,
                     contentDescription = "Editar Amigo",
                 )
             }
-            IconButton(onClick = { onDeleteClick(friend) }) { // Ação de clique
+            IconButton(onClick = { onDeleteClick(friend) }) {
                 Icon(
-                    imageVector = Icons.Default.Delete, // Ícone de lixeira
+                    imageVector = Icons.Default.Delete,
                     contentDescription = "Deletar Amigo",
-                    tint = MaterialTheme.colorScheme.error // Boa prática usar a cor de erro
+                    tint = MaterialTheme.colorScheme.error
                 )
             }
         }
@@ -285,49 +315,49 @@ private fun ReactivationConfirmationDialog(
     )
 }
 
-    @Composable
-    private fun EditFriendDialog(
-        friend: Friend,
-        onConfirm: (String) -> Unit,
-        onDismiss: () -> Unit
-    ) {
-        var name by remember { mutableStateOf(friend.name) }
-        val focusManager = LocalFocusManager.current
+@Composable
+private fun EditFriendDialog(
+    friend: Friend,
+    onConfirm: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var name by remember { mutableStateOf(friend.name) }
+    val focusManager = LocalFocusManager.current
 
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            title = { Text("Editar amigo") },
-            text = {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Nome do Amigo") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(onDone = {
-                        if (name.isNotBlank()) {
-                            focusManager.clearFocus()
-                            onConfirm(name)
-                        }
-                    })
-                )
-            },
-            dismissButton = {
-                Button(onClick = onDismiss) {
-                    Text("Cancelar")
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        if (name.isNotBlank()) {
-                            onConfirm(name)
-                        }
-                    },
-                    enabled = name.isNotBlank() // O botão é desativado se o nome estiver vazio
-                ) {
-                    Text("Salvar")
-                }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Editar amigo") },
+        text = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Nome do Amigo") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = {
+                    if (name.isNotBlank()) {
+                        focusManager.clearFocus()
+                        onConfirm(name)
+                    }
+                })
+            )
+        },
+        dismissButton = {
+            Button(onClick = onDismiss) {
+                Text("Cancelar")
             }
-        )
-    }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (name.isNotBlank()) {
+                        onConfirm(name)
+                    }
+                },
+                enabled = name.isNotBlank()
+            ) {
+                Text("Salvar")
+            }
+        }
+    )
+}

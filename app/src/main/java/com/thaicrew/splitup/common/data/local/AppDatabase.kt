@@ -11,7 +11,7 @@ import com.thaicrew.splitup.friend.data.FriendDao
         FriendEntity::class
     ],
     version = 1,
-    exportSchema = true
+    exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun friendDao(): FriendDao

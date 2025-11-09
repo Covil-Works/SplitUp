@@ -3,8 +3,6 @@ package com.thaicrew.splitup.check.data
 import androidx.room.Entity
 import androidx.room.ColumnInfo
 import androidx.room.ForeignKey
-import androidx.room.PrimaryKey
-import com.thaicrew.splitup.feature.check.data.CheckEntity
 import com.thaicrew.splitup.friend.data.FriendEntity
 
 @Entity(

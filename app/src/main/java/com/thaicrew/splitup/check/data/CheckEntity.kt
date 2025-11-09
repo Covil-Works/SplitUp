@@ -1,10 +1,10 @@
-package com.thaicrew.splitup.feature.check.data
+package com.thaicrew.splitup.check.data
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "checks")
+@Entity(tableName = "check_table")
 data class CheckEntity(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "check_id")

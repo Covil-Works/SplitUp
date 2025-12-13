@@ -13,7 +13,7 @@ data class CheckEntity(
     @ColumnInfo(name = "check_name")
     val name: String,
 
-    @ColumnInfo(name = "check_cration_date")
+    @ColumnInfo(name = "check_creation_date")
     val creationDate: Long,
 
     @ColumnInfo(name = "check_closing_date")

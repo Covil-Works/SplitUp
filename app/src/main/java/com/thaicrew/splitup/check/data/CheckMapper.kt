@@ -1,7 +1,7 @@
-package com.thaicrew.splitup.check.domain
+package com.thaicrew.splitup.check.data
 
 import com.thaicrew.splitup.check.domain.Check
-import com.thaicrew.splitup.check.data.CheckEntity
+import com.thaicrew.splitup.check.domain.CheckStatus
 
 fun CheckEntity.toDomain(): Check {
     return Check(

@@ -23,6 +23,7 @@ fun Check.toEntity(): CheckEntity {
     )
 }
 
+
 fun List<CheckEntity>.toDomain(): List<Check> {
     return this.map { it.toDomain() }
 }

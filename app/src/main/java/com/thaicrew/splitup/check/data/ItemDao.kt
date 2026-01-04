@@ -16,6 +16,9 @@ interface ItemDao {
     @Delete
     suspend fun deleteItem(item: ItemEntity)
 
+    @Query("DELETE FROM friend_share_item_table WHERE item_id = :itemId AND friend_id = :friendId")
+    suspend fun deleteItemShare(itemId: Int, friendId: Int)
+
     @Query("SELECT * FROM item_table WHERE check_id = :checkId")
     fun getItemsForCheck(checkId: Int): Flow<List<ItemEntity>>
 

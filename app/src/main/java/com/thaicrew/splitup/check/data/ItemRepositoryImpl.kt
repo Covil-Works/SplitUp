@@ -38,5 +38,6 @@ class ItemRepositoryImpl(
     }
 
     override suspend fun removeItemShare(itemId: Int, friendId: Int) {
+        itemDao.deleteItemShare(itemId, friendId)
     }
 }

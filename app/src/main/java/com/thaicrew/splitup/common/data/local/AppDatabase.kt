@@ -8,6 +8,7 @@ import com.thaicrew.splitup.friend.data.FriendDao
 // Check
 import com.thaicrew.splitup.check.data.CheckEntity
 import com.thaicrew.splitup.check.data.CheckDao
+import com.thaicrew.splitup.check.data.FriendParticipateCheckEntity
 import com.thaicrew.splitup.check.data.FriendShareItemEntity
 // Item
 import com.thaicrew.splitup.check.data.ItemEntity
@@ -18,7 +19,8 @@ import com.thaicrew.splitup.check.data.ItemDao
         FriendEntity::class,
         ItemEntity::class,
         CheckEntity::class,
-        FriendShareItemEntity::class
+        FriendShareItemEntity::class,
+        FriendParticipateCheckEntity::class
         // New tables go here
 
     ],

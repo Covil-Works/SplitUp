@@ -28,14 +28,17 @@ object DatabaseModule {
     }
 
     @Provides
-    @Singleton
     fun provideFriendDao(appDatabase: AppDatabase): FriendDao {
         return appDatabase.friendDao()
     }
 
     @Provides
-    fun provideCheckDao(appDatabase: AppDatabase) = appDatabase.checkDao()
+    fun provideCheckDao(appDatabase: AppDatabase): CheckDao {
+        return appDatabase.checkDao()
+    }
 
     @Provides
-    fun provideItemDao(appDatabase: AppDatabase) = appDatabase.itemDao()
+    fun provideItemDao(appDatabase: AppDatabase): ItemDao {
+        return appDatabase.itemDao()
+    }
 }

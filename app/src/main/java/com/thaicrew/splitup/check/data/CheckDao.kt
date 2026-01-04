@@ -31,7 +31,7 @@ interface CheckDao{
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertParticipant(join: FriendParticipateCheckEntity)
 
-    @Query("DELETE FROM friend_partipate_checks WHERE check_id = :checkId AND friend_id = :friendId")
+    @Query("DELETE FROM friend_participate_checks WHERE check_id = :checkId AND friend_id = :friendId")
     suspend fun removeParticipant(checkId: Int, friendId: Int)
 
 }

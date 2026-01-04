@@ -6,7 +6,7 @@ import androidx.room.ForeignKey
 import com.thaicrew.splitup.friend.data.FriendEntity
 
 @Entity(
-    tableName = "friend_partipate_checks",
+    tableName = "friend_participate_checks",
     primaryKeys = ["friend_id", "check_id"],
     foreignKeys = [
         ForeignKey(

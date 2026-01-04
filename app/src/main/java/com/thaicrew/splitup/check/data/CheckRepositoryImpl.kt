@@ -5,8 +5,9 @@ import com.thaicrew.splitup.check.domain.CheckRepository
 import com.thaicrew.splitup.check.domain.CheckStatus
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
-class CheckRepositoryImpl(
+class CheckRepositoryImpl @Inject constructor(
     private val dao: CheckDao
 ) : CheckRepository {
 

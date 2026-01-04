@@ -1,9 +1,10 @@
 package com.thaicrew.splitup.check.domain
 
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
 /* Cria uma nova comanda */
-data class CreateCheckUseCase(
+data class CreateCheckUseCase @Inject constructor(
     private val repository: CheckRepository
 ) {
     suspend operator fun invoke(name: String): Long {

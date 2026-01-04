@@ -4,8 +4,9 @@ import com.thaicrew.splitup.check.domain.Item
 import com.thaicrew.splitup.check.domain.ItemRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
-class ItemRepositoryImpl(
+class ItemRepositoryImpl @Inject constructor(
     private val itemDao: ItemDao
 ) : ItemRepository {
 

@@ -5,8 +5,9 @@ import com.thaicrew.splitup.friend.domain.FriendRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
+import javax.inject.Inject
 
-class FriendRepositoryImpl(
+class FriendRepositoryImpl @Inject constructor(
     private val dao: FriendDao
 ) : FriendRepository {
     override fun getActiveFriends(): Flow<List<Friend>> {

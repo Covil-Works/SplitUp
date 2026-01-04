@@ -1,8 +1,10 @@
 package com.thaicrew.splitup.check.domain
 
+import javax.inject.Inject
+
 /* Alterna o compartilhamento de um item */
 
-data class ToggleItemShareUseCase(
+data class ToggleItemShareUseCase @Inject constructor(
     private val repository: ItemRepository
 ) {
     suspend operator fun invoke(

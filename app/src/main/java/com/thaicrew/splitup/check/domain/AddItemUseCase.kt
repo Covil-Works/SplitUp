@@ -1,8 +1,10 @@
 package com.thaicrew.splitup.check.domain
 
+import javax.inject.Inject
+
 /* Adiciona um item à comanda */
 
-data class AddItemUseCase(
+data class AddItemUseCase @Inject constructor(
     private val repository: ItemRepository
 ) {
     suspend operator fun invoke(

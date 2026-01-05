@@ -2,6 +2,7 @@ package com.thaicrew.splitup.check.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.thaicrew.splitup.check.domain.CreateCheckUseCase
 import com.thaicrew.splitup.check.domain.GetOpenChecksUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -18,7 +19,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CheckViewModel @Inject constructor(
-    private val getOpenChecksUseCase: GetOpenChecksUseCase
+    private val getOpenChecksUseCase: GetOpenChecksUseCase,
+    private val createCheckUseCase: CreateCheckUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CheckScreenState())
@@ -40,11 +42,23 @@ class CheckViewModel @Inject constructor(
             }
             .launchIn(viewModelScope)
     }
-
     fun onAddCheckClicked() {
         viewModelScope.launch {
-            Timber.i("Botão de adicionar comanda clicado. Disparando evento de navegação.")
-            _uiEvent.emit(CheckUiEvent.NavigateToCreateCheck)
+            try {
+                Timber.i("Criando nova comanda padrão...")
+                val newCheckId = createCheckUseCase("Nova comanda")
+                Timber.d("Comanda criada com ID: $newCheckId. Navegando para detalhes.")
+                _uiEvent.emit(CheckUiEvent.NavigateToCheckDetail(newCheckId.toInt()))
+            } catch (e: Exception) {
+                Timber.e(e, "Erro ao criar nova comanda.")
+                _uiEvent.emit(CheckUiEvent.ShowSnackbar("Erro ao criar comanda."))
+            }
+        }
+    }
+    fun onCheckClicked(checkId: Int) {
+        viewModelScope.launch {
+            Timber.i("Comanda ID $checkId selecionada. Navegando para detalhes.")
+            _uiEvent.emit(CheckUiEvent.NavigateToCheckDetail(checkId))
         }
     }
 }

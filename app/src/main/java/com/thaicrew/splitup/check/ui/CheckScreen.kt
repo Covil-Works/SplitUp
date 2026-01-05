@@ -3,6 +3,7 @@ package com.thaicrew.splitup.check.ui
 import androidx.compose.foundation.layout.Box
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,24 +39,21 @@ import java.util.Locale
 @Composable
 fun CheckScreen(
     viewModel: CheckViewModel,
-    onNavigateToCreate: () -> Unit // Callback para a navegação
+    onNavigateToCreate: (Int) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Raciocínio Sigma: Coleta de eventos de disparo único (Events vs State)
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
             when (event) {
                 is CheckUiEvent.ShowSnackbar -> {
                     snackbarHostState.showSnackbar(event.message)
                 }
-                CheckUiEvent.NavigateToCreateCheck -> {
-                    Timber.d("Evento de navegação recebido na UI.")
-                    onNavigateToCreate()
+                is CheckUiEvent.NavigateToCheckDetail -> {
+                    Timber.d("Navegando para detalhes da comanda: ${event.checkId}")
+                    onNavigateToCreate(event.checkId)
                 }
-
-                else -> {}
             }
         }
     }
@@ -78,14 +76,20 @@ fun CheckScreen(
                     CircularProgressIndicator()
                 }
             } else {
-                CheckList(checks = uiState.checks)
+                CheckList(
+                    checks = uiState.checks,
+                    onCheckClick = { id -> viewModel.onCheckClicked(id) } // Adicionado
+                )
             }
         }
     }
 }
 
 @Composable
-private fun CheckList(checks: List<Check>) {
+private fun CheckList(
+    checks: List<Check>,
+    onCheckClick: (Int) -> Unit
+){
     if (checks.isEmpty()) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -101,24 +105,28 @@ private fun CheckList(checks: List<Check>) {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(checks, key = { it.id }) { check ->
-                CheckListItem(check = check)
+                CheckListItem(
+                    check = check,
+                    onClick = { onCheckClick(check.id) }
+                )
             }
         }
     }
 }
 
 @Composable
-private fun CheckListItem(check: Check) {
-    val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()) }
+private fun CheckListItem(check: Check, onClick: () -> Unit) {    val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()) }
     val dateString = dateFormatter.format(Date(check.creationDate))
 
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick()}
     ) {
         Column(
             modifier = Modifier
                 .padding(16.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
         ) {
             Text(text = check.name, style = MaterialTheme.typography.titleLarge)
             Text(

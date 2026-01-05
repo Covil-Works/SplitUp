@@ -56,4 +56,10 @@ class CheckRepositoryImpl @Inject constructor(
     override suspend fun removeParticipant(checkId: Int, friendId: Int) {
         dao.removeParticipant(checkId, friendId)
     }
+
+    override fun getCheckByIdFlow(id: Int): Flow<Check?> {
+        return dao.getCheckByIdFlow(id).map { entity ->
+            entity?.toDomain()
+        }
+    }
 }

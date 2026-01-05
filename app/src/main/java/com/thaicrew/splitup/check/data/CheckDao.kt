@@ -34,5 +34,7 @@ interface CheckDao{
     @Query("DELETE FROM friend_participate_checks WHERE check_id = :checkId AND friend_id = :friendId")
     suspend fun removeParticipant(checkId: Int, friendId: Int)
 
+    @Query("SELECT * FROM check_table WHERE check_id = :id")
+    fun getCheckByIdFlow(id: Int): Flow<CheckEntity?>
 }
 

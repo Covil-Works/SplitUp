@@ -1,20 +1,19 @@
 package com.thaicrew.splitup
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material3.Text
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.Alignment
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.thaicrew.splitup.check.ui.CheckDetailScreen
+import com.thaicrew.splitup.check.ui.CheckDetailViewModel
 import com.thaicrew.splitup.check.ui.CheckScreen
 import com.thaicrew.splitup.check.ui.CheckViewModel
 import com.thaicrew.splitup.friend.ui.FriendScreen
@@ -36,7 +35,11 @@ fun AppNavHost(
 ) {
     NavHost(navController = navController, startDestination = Screen.Checks.route) {
         composable(Screen.Checks.route) {
-            CheckScreen(viewModel = checkViewModel, onNavigateToCreate = { /* futuro */ })
+            CheckScreen(viewModel = checkViewModel,
+                onNavigateToCreate = { id ->
+                    navController.navigate(Screen.CheckDetail.createRoute(id))
+                }
+            )
         }
         composable(Screen.Friends.route) {
             FriendScreen(viewModel = friendViewModel)
@@ -44,13 +47,12 @@ fun AppNavHost(
         composable(
             route = Screen.CheckDetail.route,
             arguments = listOf(navArgument("checkId") { type = NavType.IntType })
-        ) { backStackEntry ->
-            val checkId = backStackEntry.arguments?.getInt("checkId") ?: 0
-
-            // Placeholder temporário enquanto não criamos a CheckDetailScreen
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = "Detalhes da Comanda ID: $checkId")
-            }
+        ) {
+            val detailViewModel: CheckDetailViewModel = hiltViewModel()
+            CheckDetailScreen(
+                viewModel = detailViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
     }
 }

@@ -8,6 +8,8 @@ interface CheckRepository {
 
     fun getChecksByStatus(status: CheckStatus): Flow<List<Check>>
 
+    fun getCheckByIdFlow(id: Int): Flow<Check?>
+
     suspend fun getCheckById(id: Int): Check?
 
     suspend fun saveCheck(check: Check): Long
@@ -17,4 +19,5 @@ interface CheckRepository {
     suspend fun addParticipant(checkId: Int, friendId: Int)
 
     suspend fun removeParticipant(checkId: Int, friendId: Int)
+
 }

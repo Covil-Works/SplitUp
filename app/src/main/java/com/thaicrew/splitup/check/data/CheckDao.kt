@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.thaicrew.splitup.friend.data.FriendEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -31,10 +32,20 @@ interface CheckDao{
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertParticipant(join: FriendParticipateCheckEntity)
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertParticipants(participants: List<FriendParticipateCheckEntity>)
+
     @Query("DELETE FROM friend_participate_checks WHERE check_id = :checkId AND friend_id = :friendId")
     suspend fun removeParticipant(checkId: Int, friendId: Int)
 
     @Query("SELECT * FROM check_table WHERE check_id = :id")
     fun getCheckByIdFlow(id: Int): Flow<CheckEntity?>
+
+    @Query("""
+        SELECT friend.* FROM friend 
+        INNER JOIN friend_participate_checks ON friend.friend_id = friend_participate_checks.friend_id 
+        WHERE friend_participate_checks.check_id = :checkId
+    """)
+    fun getParticipantsByCheckId(checkId: Int): Flow<List<FriendEntity>>
 }
 

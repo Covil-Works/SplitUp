@@ -3,6 +3,8 @@ package com.thaicrew.splitup.check.data
 import com.thaicrew.splitup.check.domain.Check
 import com.thaicrew.splitup.check.domain.CheckRepository
 import com.thaicrew.splitup.check.domain.CheckStatus
+import com.thaicrew.splitup.friend.domain.Friend
+import com.thaicrew.splitup.friend.data.toDomain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -62,4 +64,21 @@ class CheckRepositoryImpl @Inject constructor(
             entity?.toDomain()
         }
     }
+
+    override fun getParticipants(checkId: Int): Flow<List<Friend>> {
+        return dao.getParticipantsByCheckId(checkId).map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
+    override suspend fun addParticipants(checkId: Int, friendIds: List<Int>) {
+        val entities = friendIds.map { id ->
+            FriendParticipateCheckEntity(
+                checkId = checkId,
+                friendId = id
+            )
+        }
+        dao.insertParticipants(entities)
+    }
+
 }

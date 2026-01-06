@@ -1,5 +1,6 @@
 package com.thaicrew.splitup.check.domain
 
+import com.thaicrew.splitup.friend.domain.Friend
 import kotlinx.coroutines.flow.Flow
 
 interface CheckRepository {
@@ -19,5 +20,9 @@ interface CheckRepository {
     suspend fun addParticipant(checkId: Int, friendId: Int)
 
     suspend fun removeParticipant(checkId: Int, friendId: Int)
+
+    fun getParticipants(checkId: Int): Flow<List<Friend>>
+
+    suspend fun addParticipants(checkId: Int, friendIds: List<Int>)
 
 }

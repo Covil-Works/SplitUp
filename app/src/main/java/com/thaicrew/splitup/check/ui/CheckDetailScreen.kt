@@ -1,5 +1,6 @@
 package com.thaicrew.splitup.check.ui
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -19,10 +20,159 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CheckDetailScreen(
+    viewModel: CheckDetailViewModel,
+    onNavigateBack: () -> Unit
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    var showEditDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is CheckDetailUiEvent.ShowSnackbar -> {
+                    snackbarHostState.showSnackbar(event.message)
+                }
+                CheckDetailUiEvent.NavigateBack -> onNavigateBack()
+            }
+        }
+    }
+
+    if (showEditDialog && uiState.check != null) {
+        EditCheckNameDialog(
+            currentName = uiState.check!!.name,
+            onConfirm = { newName ->
+                viewModel.onNameChanged(newName)
+                showEditDialog = false
+            },
+            onDismiss = { showEditDialog = false }
+        )
+    }
+
+    // Controle do Bottom Sheet
+    if (uiState.showBottomSheet) {
+        SelectFriendsBottomSheet(
+            availableFriends = uiState.availableFriends,
+            onDismiss = { viewModel.onDismissBottomSheet() },
+            onConfirm = { ids -> viewModel.onConfirmParticipants(ids) }
+        )
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable { showEditDialog = true }
+                    ) {
+                        Text(text = uiState.check?.name ?: "Carregando...")
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Editar nome",
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Voltar"
+                        )
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            if (uiState.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            } else if (uiState.isError) {
+                Text("Erro ao carregar", modifier = Modifier.align(Alignment.Center))
+            } else {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    ParticipantsSection(
+                        participants = uiState.participants,
+                        onAddClicked = { viewModel.onAddFriendsClicked() },
+                        onRemoveParticipant = { id -> viewModel.onRemoveParticipant(id) }
+                    )
+
+                    HorizontalDivider()
+
+                    AddItemSection(
+                        name = uiState.newItemName,
+                        quantity = uiState.newItemQuantity,
+                        value = uiState.newItemValue,
+                        onNameChange = { viewModel.onNewItemNameChanged(it) },
+                        onQuantityChange = { viewModel.onNewItemQuantityChanged(it) },
+                        onValueChange = { viewModel.onNewItemValueChanged(it) }
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    // 2. Seção "Quem Divide"
+                    ItemParticipantsSection(
+                        allParticipants = uiState.participants,
+                        selectedIds = uiState.selectedFriendIdsForItem,
+                        onToggleFriend = { viewModel.onToggleFriendSelection(it) }
+                    )
+
+                    // 3. Botão de Adicionar
+                    // Nome preenchido + Valor existe + Pelo menos 1 amigo
+                    val isFormValid = uiState.newItemName.isNotBlank() &&
+                            uiState.newItemValue.isNotBlank() &&
+                            uiState.selectedFriendIdsForItem.isNotEmpty()
+
+                    AddItemButton(
+                        isEnabled = isFormValid,
+                        onAddClicked = { viewModel.onAddItemClicked() }
+                    )
+
+                    HorizontalDivider()
+
+                    // 4. Lista de Itens SIMPLIFICADA
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth().weight(1f),
+                        contentPadding = PaddingValues(16.dp)
+                    ) {
+                        items(uiState.items) { item ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text("${item.quantity}x ${item.name}")                                // Helper simples para formatar centavos (ex: 100 -> R$ 1,00)
+
+                                Text("R$ ${String.format("%.2f", item.valueInCents / 100.0)}")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -174,106 +324,6 @@ fun ParticipantsSection(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CheckDetailScreen(
-    viewModel: CheckDetailViewModel,
-    onNavigateBack: () -> Unit
-) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
-    var showEditDialog by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        viewModel.uiEvent.collect { event ->
-            when (event) {
-                is CheckDetailUiEvent.ShowSnackbar -> {
-                    snackbarHostState.showSnackbar(event.message)
-                }
-                CheckDetailUiEvent.NavigateBack -> onNavigateBack()
-            }
-        }
-    }
-
-    if (showEditDialog && uiState.check != null) {
-        EditCheckNameDialog(
-            currentName = uiState.check!!.name,
-            onConfirm = { newName ->
-                viewModel.onNameChanged(newName)
-                showEditDialog = false
-            },
-            onDismiss = { showEditDialog = false }
-        )
-    }
-
-    // Controle do Bottom Sheet
-    if (uiState.showBottomSheet) {
-        SelectFriendsBottomSheet(
-            availableFriends = uiState.availableFriends,
-            onDismiss = { viewModel.onDismissBottomSheet() },
-            onConfirm = { ids -> viewModel.onConfirmParticipants(ids) }
-        )
-    }
-
-    Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { showEditDialog = true }
-                    ) {
-                        Text(text = uiState.check?.name ?: "Carregando...")
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "Editar nome",
-                            modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar"
-                        )
-                    }
-                }
-            )
-        }
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            } else if (uiState.isError) {
-                Text("Erro ao carregar", modifier = Modifier.align(Alignment.Center))
-            } else {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    ParticipantsSection(
-                        participants = uiState.participants,
-                        onAddClicked = { viewModel.onAddFriendsClicked() },
-                        onRemoveParticipant = { id -> viewModel.onRemoveParticipant(id) }
-                    )
-
-                    Box(
-                        modifier = Modifier.weight(1f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Seção de Itens em breve...")
-                    }
-                }
-            }
-        }
-    }
-}
-
 @Composable
 fun EditCheckNameDialog(
     currentName: String,
@@ -302,4 +352,155 @@ fun EditCheckNameDialog(
             TextButton(onClick = onDismiss) { Text("Cancelar") }
         }
     )
+}
+
+@Composable
+fun AddItemSection(
+    name: String,
+    quantity: Int,
+    value: String,
+    onNameChange: (String) -> Unit,
+    onQuantityChange: (Int) -> Unit,
+    onValueChange: (String) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "Novo Item",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // 1. Campo Nome do Item
+        OutlinedTextField(
+            value = name,
+            onValueChange = onNameChange,
+            label = { Text("Nome do item (ex: Cerveja)") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // 2. Linha com Quantidade e Valor
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Controle de Quantidade
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline,
+                        shape = MaterialTheme.shapes.small
+                    )
+            ) {
+                IconButton(onClick = { onQuantityChange(-1) }) {
+                    Icon(Icons.Default.Remove, contentDescription = "Diminuir")
+                }
+                Text(
+                    text = quantity.toString(),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+                IconButton(onClick = { onQuantityChange(1) }) {
+                    Icon(Icons.Default.Add, contentDescription = "Aumentar")
+                }
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            // Campo de preço com teclado numérico
+            OutlinedTextField(
+                value = value,
+                onValueChange = onValueChange,
+                label = { Text("Valor total") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                prefix = { Text("R$ ") },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Done
+                )
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@Composable
+fun ItemParticipantsSection(
+    allParticipants: List<com.thaicrew.splitup.friend.domain.Friend>,
+    selectedIds: Set<Int>,
+    onToggleFriend: (Int) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
+        Text(
+            text = "Quem divide?",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        if (allParticipants.isEmpty()) {
+            Text(
+                text = "Adicione amigos à comanda primeiro.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error
+            )
+        } else {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                allParticipants.forEach { friend ->
+                    FilterChip(
+                        selected = selectedIds.contains(friend.id),
+                        onClick = { onToggleFriend(friend.id) },
+                        label = { Text(friend.name) },
+                        leadingIcon = if (selectedIds.contains(friend.id)) {
+                            {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Selecionado",
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        } else null
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AddItemButton(
+    isEnabled: Boolean,
+    onAddClicked: () -> Unit
+) {
+    Button(
+        onClick = onAddClicked,
+        enabled = isEnabled,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Icon(Icons.Default.Add, contentDescription = null)
+        Spacer(modifier = Modifier.width(8.dp))
+        Text("Adicionar Item")
+    }
 }

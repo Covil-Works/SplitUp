@@ -43,12 +43,11 @@ fun CheckDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var showEditDialog by remember { mutableStateOf(false) }
 
+    // ... (Mantenha os LaunchedEffect e Dialogs iguais ao que já tinha) ...
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
             when (event) {
-                is CheckDetailUiEvent.ShowSnackbar -> {
-                    snackbarHostState.showSnackbar(event.message)
-                }
+                is CheckDetailUiEvent.ShowSnackbar -> snackbarHostState.showSnackbar(event.message)
                 CheckDetailUiEvent.NavigateBack -> onNavigateBack()
             }
         }
@@ -57,15 +56,11 @@ fun CheckDetailScreen(
     if (showEditDialog && uiState.check != null) {
         EditCheckNameDialog(
             currentName = uiState.check!!.name,
-            onConfirm = { newName ->
-                viewModel.onNameChanged(newName)
-                showEditDialog = false
-            },
+            onConfirm = { newName -> viewModel.onNameChanged(newName); showEditDialog = false },
             onDismiss = { showEditDialog = false }
         )
     }
 
-    // Controle do Bottom Sheet
     if (uiState.showBottomSheet) {
         SelectFriendsBottomSheet(
             availableFriends = uiState.availableFriends,
@@ -85,44 +80,39 @@ fun CheckDetailScreen(
                     ) {
                         Text(text = uiState.check?.name ?: "Carregando...")
                         Spacer(modifier = Modifier.width(8.dp))
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "Editar nome",
-                            modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                        Icon(Icons.Default.Edit, contentDescription = "Editar", modifier = Modifier.size(16.dp))
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar"
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
                     }
                 }
             )
         }
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            } else if (uiState.isError) {
-                Text("Erro ao carregar", modifier = Modifier.align(Alignment.Center))
-            } else {
-                Column(modifier = Modifier.fillMaxSize()) {
+        if (uiState.isLoading) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+        } else {
+            // AQUI ESTÁ A MÁGICA: Uma única LazyColumn para a tela toda
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentPadding = PaddingValues(bottom = 80.dp) // Espaço extra no fim
+            ) {
+                // --- SEÇÃO 1: Participantes (Topo) ---
+                item {
                     ParticipantsSection(
                         participants = uiState.participants,
                         onAddClicked = { viewModel.onAddFriendsClicked() },
                         onRemoveParticipant = { id -> viewModel.onRemoveParticipant(id) }
                     )
+                    Divider()
+                }
 
-                    HorizontalDivider()
-
+                // --- SEÇÃO 2: Adicionar Item (Formulário) ---
+                item {
                     AddItemSection(
                         name = uiState.newItemName,
                         quantity = uiState.newItemQuantity,
@@ -131,9 +121,11 @@ fun CheckDetailScreen(
                         onQuantityChange = { viewModel.onNewItemQuantityChanged(it) },
                         onValueChange = { viewModel.onNewItemValueChanged(it) }
                     )
+                }
 
+                // --- SEÇÃO 3: Quem divide o item ---
+                item {
                     Spacer(modifier = Modifier.height(8.dp))
-                    // 2. Seção "Quem Divide"
                     ItemParticipantsSection(
                         allParticipants = uiState.participants,
                         selectedIds = uiState.selectedFriendIdsForItem,
@@ -141,52 +133,64 @@ fun CheckDetailScreen(
                         onToggleFriend = { viewModel.onToggleFriendSelection(it) },
                         onRemoveAll = { viewModel.onRemoveAllSelection() }
                     )
+                }
 
-                    // 3. Botão de Adicionar
-                    // Nome preenchido + Valor existe + Pelo menos 1 amigo
+                // --- SEÇÃO 4: Botão de Ação ---
+                item {
                     val hasParticipants = uiState.participants.isNotEmpty()
                     val isSelectionValid = (uiState.isAllSelected && hasParticipants) || uiState.selectedFriendIdsForItem.isNotEmpty()
-                    val isFormValid = uiState.newItemName.isNotBlank() &&
-                            uiState.newItemValue.isNotBlank() &&
-                            isSelectionValid
+                    val isFormValid = uiState.newItemName.isNotBlank() && uiState.newItemValue.isNotBlank() && isSelectionValid
 
                     AddItemButton(
                         isEnabled = isFormValid,
                         onAddClicked = { viewModel.onAddItemClicked() }
                     )
+                    Divider(modifier = Modifier.padding(vertical = 8.dp))
+                }
 
-                    HorizontalDivider()
-
-                    // Visualização d prévia da comanda
+                // --- SEÇÃO 5: Seletor de Visualização ---
+                item {
                     CheckViewModeSelector(
                         currentMode = uiState.viewMode,
                         onModeSelected = { viewModel.onChangeViewMode(it) }
                     )
+                }
 
-                    // 2. O Conteúdo Variável
-                    when (uiState.viewMode) {
-                        CheckViewMode.ByFriend -> {
-                            FriendTotalsList(
-                                participants = uiState.participants,
-                                totals = uiState.friendTotals
-                            )
+                // --- SEÇÃO 6: Lista Dinâmica (Muda conforme a aba) ---
+                when (uiState.viewMode) {
+                    CheckViewMode.ByFriend -> {
+                        if (uiState.participants.isEmpty()) {
+                            item {
+                                Text(
+                                    "Adicione amigos para ver a divisão.",
+                                    modifier = Modifier.padding(16.dp),
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        } else {
+                            items(uiState.participants) { friend ->
+                                Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+                                    FriendTotalCard(
+                                        friend = friend,
+                                        totalInCents = uiState.friendTotals[friend.id] ?: 0L
+                                    )
+                                }
+                            }
                         }
-                        CheckViewMode.ByItem -> {
-                            // Por enquanto, deixamos uma lista provisória até o próximo passo
-                            // ou implementamos a lista de ItemWithSharers básica
-                            LazyColumn(
-                                contentPadding = PaddingValues(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                items(uiState.itemsWithSharers) { itemWithSharers ->
-                                    val item = itemWithSharers.item
-                                    // Card Provisório só pra não ficar vazio
-                                    Card(modifier = Modifier.fillMaxWidth()) {
-                                        Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                                            Text(item.name)
-                                            Text("R$ ${String.format("%.2f", item.valueInCents / 100.0)}")
-                                        }
-                                    }
+                    }
+                    CheckViewMode.ByItem -> {
+                        if (uiState.itemsWithSharers.isEmpty()) {
+                            item {
+                                Text(
+                                    "Nenhum item adicionado.",
+                                    modifier = Modifier.padding(16.dp),
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        } else {
+                            items(uiState.itemsWithSharers) { itemWithSharers ->
+                                Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+                                    ItemSummaryCard(item = itemWithSharers.item)
                                 }
                             }
                         }
@@ -196,8 +200,6 @@ fun CheckDetailScreen(
         }
     }
 }
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectFriendsBottomSheet(
@@ -657,6 +659,73 @@ fun FriendTotalsList(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun FriendTotalCard(
+    friend: com.thaicrew.splitup.friend.domain.Friend,
+    totalInCents: Long
+) {
+    val totalFormatted = String.format("%.2f", totalInCents / 100.0)
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(text = friend.name, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = if (totalInCents == 0L) "Nada a pagar" else "Paga a sua parte",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Text(
+                text = "R$ $totalFormatted",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+@Composable
+fun ItemSummaryCard(
+    item: com.thaicrew.splitup.check.domain.Item
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = item.name, style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = "${item.quantity}x",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+            Text(
+                text = "R$ ${String.format("%.2f", item.valueInCents / 100.0)}",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }

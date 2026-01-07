@@ -29,6 +29,13 @@ data class CheckDetailScreenState(
     val itemsWithSharers: List<ItemWithSharers> = emptyList(), // Lista rica para a UI
     val friendTotals: Map<Int, Long> = emptyMap(), // ID do Amigo -> Total a pagar em Cents
     val viewMode: CheckViewMode = CheckViewMode.ByItem, // Controle das abas
+
+    // Edição de Item
+    val editingItemId: Int? = null, // relativo ao item aberto (null = nenhum)
+    val editingName: String = "",
+    val editingQuantity: Int = 1,
+    val editingValue: String = "",
+    val editingSharers: Set<Int> = emptySet()
 )
 
 enum class CheckViewMode {

@@ -14,6 +14,7 @@ import com.thaicrew.splitup.check.domain.GetParticipantsUseCase
 import com.thaicrew.splitup.check.domain.ItemWithSharers
 import com.thaicrew.splitup.check.domain.RemoveParticipantUseCase
 import com.thaicrew.splitup.check.domain.ToggleItemShareUseCase
+import com.thaicrew.splitup.check.domain.UpdateItemUseCase
 import com.thaicrew.splitup.friend.domain.GetActiveFriendsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -41,7 +42,9 @@ class CheckDetailViewModel @Inject constructor(
     private val addItemUseCase: AddItemUseCase,
     private val toggleItemShareUseCase: ToggleItemShareUseCase,
     private val getItemsByCheckUseCase: GetItemsByCheckUseCase,
-    private val getCheckItemsWithSharersUseCase: GetCheckItemsWithSharersUseCase
+    private val getCheckItemsWithSharersUseCase: GetCheckItemsWithSharersUseCase,
+    private val updateItemUseCase: UpdateItemUseCase,
+    private val deleteItemUseCase: UpdateItemUseCase
 
 ) : ViewModel() {
 
@@ -281,6 +284,127 @@ class CheckDetailViewModel @Inject constructor(
                 isAllSelected = false,
                 selectedFriendIdsForItem = emptySet()
             )
+        }
+    }
+
+    fun onExpandItem(itemWithSharers: com.thaicrew.splitup.check.domain.ItemWithSharers) {
+        val item = itemWithSharers.item
+        // Converte centavos para String (ex: 1050 -> "1050" ou "10.50")
+        // Para manter simples e compatível com a lógica de filtro de digitos, usaremos apenas números
+        val valueString = item.valueInCents.toString()
+
+        _uiState.update { it.copy(
+            editingItemId = item.id,
+            editingName = item.name,
+            editingQuantity = item.quantity,
+            editingValue = valueString,
+            editingSharers = itemWithSharers.sharersIds.toSet()
+        )}
+    }
+
+    fun onCollapseItem() {
+        _uiState.update { it.copy(editingItemId = null) }
+    }
+
+    fun onEditNameChange(newName: String) {
+        _uiState.update { it.copy(editingName = newName) }
+    }
+
+    fun onEditQuantityChange(delta: Int) {
+        _uiState.update { state ->
+            val newQty = state.editingQuantity + delta
+            if (newQty >= 1) state.copy(editingQuantity = newQty) else state
+        }
+    }
+
+    fun onEditValueChange(newValue: String) {
+        _uiState.update { it.copy(editingValue = newValue) }
+    }
+
+    fun onEditToggleFriend(friendId: Int) {
+        _uiState.update { state ->
+            val current = state.editingSharers.toMutableSet()
+            if (current.contains(friendId)) current.remove(friendId) else current.add(friendId)
+            state.copy(editingSharers = current)
+        }
+    }
+
+    fun onSaveEditClicked() {
+        val state = uiState.value
+        val itemId = state.editingItemId ?: return
+
+        // Encontra o item original na lista para podermos comparar os pagantes
+        val originalEntry = state.itemsWithSharers.find { it.item.id == itemId } ?: return
+
+        // Tratamento do valor (String -> Long)
+        val cleanString = state.editingValue.replace(Regex("[^0-9]"), "")
+        val valueInCents = cleanString.toLongOrNull() ?: 0L
+
+        // Validação básica
+        if (state.editingName.isBlank()) return
+        if (valueInCents <= 0) {
+            viewModelScope.launch { _uiEvent.emit(CheckDetailUiEvent.ShowSnackbar("O valor deve ser maior que zero.")) }
+            return
+        }
+        if (state.editingSharers.isEmpty()) {
+            viewModelScope.launch { _uiEvent.emit(CheckDetailUiEvent.ShowSnackbar("O item precisa ter pelo menos um pagante.")) }
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                // 1. Atualiza os dados do Item
+                val updatedItem = originalEntry.item.copy(
+                    name = state.editingName,
+                    quantity = state.editingQuantity,
+                    valueInCents = valueInCents
+                )
+                updateItemUseCase(updatedItem)
+
+                // 2. Sincroniza os Pagantes (Quem divide)
+                // Compara a lista antiga (originalEntry.sharersIds) com a nova (state.editingSharers)
+                val oldSharers = originalEntry.sharersIds.toSet()
+                val newSharers = state.editingSharers
+
+                // Quem entrou na divisão?
+                val toAdd = newSharers - oldSharers
+                toAdd.forEach { friendId ->
+                    toggleItemShareUseCase(itemId, friendId, checkId, isShared = true)
+                }
+
+                // Quem saiu da divisão?
+                val toRemove = oldSharers - newSharers
+                toRemove.forEach { friendId ->
+                    toggleItemShareUseCase(itemId, friendId, checkId, isShared = false)
+                }
+
+                // 3. Fecha o modo de edição
+                onCollapseItem()
+
+            } catch (e: Exception) {
+                Timber.e(e, "Erro ao atualizar item")
+                _uiEvent.emit(CheckDetailUiEvent.ShowSnackbar("Erro ao salvar alterações."))
+            }
+        }
+    }
+
+    fun onDeleteEditClicked() {
+        val state = uiState.value
+        val itemId = state.editingItemId ?: return
+        val originalEntry = state.itemsWithSharers.find { it.item.id == itemId } ?: return
+
+        viewModelScope.launch {
+            try {
+                // Ao deletar o item, o Room (Cascade) já remove as relações de share automaticamente.
+                deleteItemUseCase(originalEntry.item)
+
+                // Fecha o modo de edição
+                onCollapseItem()
+
+            } catch (e: Exception) {
+                Timber.e(e, "Erro ao excluir item")
+                _uiEvent.emit(CheckDetailUiEvent.ShowSnackbar("Erro ao excluir item."))
+            }
         }
     }
 

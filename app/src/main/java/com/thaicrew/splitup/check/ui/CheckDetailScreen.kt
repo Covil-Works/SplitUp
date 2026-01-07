@@ -1,5 +1,6 @@
 package com.thaicrew.splitup.check.ui
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -179,23 +180,32 @@ fun CheckDetailScreen(
                         }
                     }
                     CheckViewMode.ByItem -> {
-                        if (uiState.itemsWithSharers.isEmpty()) {
-                            item {
-                                Text(
-                                    "Nenhum item adicionado.",
-                                    modifier = Modifier.padding(16.dp),
-                                    style = MaterialTheme.typography.bodyMedium
+                        items(uiState.itemsWithSharers) { itemWithSharers ->
+                            val isExpanded = uiState.editingItemId == itemWithSharers.item.id
+
+                            Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+                                ExpandableItemCard(
+                                    itemWithSharers = itemWithSharers,
+                                    isExpanded = isExpanded,
+                                    editingName = uiState.editingName,
+                                    editingQuantity = uiState.editingQuantity,
+                                    editingValue = uiState.editingValue,
+                                    editingSharers = uiState.editingSharers,
+                                    allParticipants = uiState.participants,
+                                    onClick = {
+                                        if (isExpanded) viewModel.onCollapseItem()
+                                        else viewModel.onExpandItem(itemWithSharers)
+                                    },
+                                    onNameChange = { viewModel.onEditNameChange(it) },
+                                    onQuantityChange = { viewModel.onEditQuantityChange(it) },
+                                    onValueChange = { viewModel.onEditValueChange(it) },
+                                    onToggleFriend = { viewModel.onEditToggleFriend(it) },
+                                    onSaveClick = { viewModel.onSaveEditClicked() },
+                                    onDeleteClick = { viewModel.onDeleteEditClicked() }
                                 )
                             }
-                        } else {
-                            items(uiState.itemsWithSharers) { itemWithSharers ->
-                                Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-                                    ItemSummaryCard(item = itemWithSharers.item)
-                                }
-                            }
                         }
-                    }
-                }
+                    }                }
             }
         }
     }
@@ -726,6 +736,137 @@ fun ItemSummaryCard(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun ExpandableItemCard(
+    itemWithSharers: com.thaicrew.splitup.check.domain.ItemWithSharers,
+    isExpanded: Boolean,
+    // Dados de Edição
+    editingName: String,
+    editingQuantity: Int,
+    editingValue: String,
+    editingSharers: Set<Int>,
+    allParticipants: List<com.thaicrew.splitup.friend.domain.Friend>,
+    // Eventos
+    onClick: () -> Unit,
+    onNameChange: (String) -> Unit,
+    onQuantityChange: (Int) -> Unit,
+    onValueChange: (String) -> Unit,
+    onToggleFriend: (Int) -> Unit,
+    onSaveClick: () -> Unit,   // Implementaremos no próximo passo
+    onDeleteClick: () -> Unit  // Implementaremos no próximo passo
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize()
+            .clickable { if (!isExpanded) onClick() }, // Só clica para abrir se estiver fechado
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isExpanded) 4.dp else 1.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isExpanded) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+
+            if (isExpanded) {
+                // --- MODO EDIÇÃO ---
+                Text(
+                    "Editar Item",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Reutilizando os componentes que já criamos!
+                // Cuidado: AddItemSection e ItemParticipantsSection precisam ser acessíveis aqui.
+
+                // Input Nome
+                OutlinedTextField(
+                    value = editingName,
+                    onValueChange = onNameChange,
+                    label = { Text("Nome") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Input Qtd e Valor (Replicando layout simplificado ou reusando)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Botões de Qtd
+                    IconButton(onClick = { onQuantityChange(-1) }) { Icon(Icons.Default.Remove, null) }
+                    Text("$editingQuantity", style = MaterialTheme.typography.titleMedium)
+                    IconButton(onClick = { onQuantityChange(1) }) { Icon(Icons.Default.Add, null) }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    OutlinedTextField(
+                        value = editingValue,
+                        onValueChange = onValueChange,
+                        label = { Text("Centavos") }, // Ajustaremos formatação visual depois
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Quem Divide (Modo Manual Simplificado para Edição)
+                Text("Quem divide agora:", style = MaterialTheme.typography.bodySmall)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    allParticipants.forEach { friend ->
+                        FilterChip(
+                            selected = editingSharers.contains(friend.id),
+                            onClick = { onToggleFriend(friend.id) },
+                            label = { Text(friend.name) }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Botões de Ação (Salvar / Excluir / Fechar)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDeleteClick) {
+                        Text("Excluir", color = MaterialTheme.colorScheme.error)
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    TextButton(onClick = onClick) { // Reutiliza onClick para fechar/cancelar
+                        Text("Cancelar")
+                    }
+                    Button(onClick = onSaveClick) {
+                        Text("Salvar")
+                    }
+                }
+
+            } else {
+                // --- MODO RESUMO (O que já tínhamos) ---
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(text = itemWithSharers.item.name, style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            text = "${itemWithSharers.item.quantity}x • ${itemWithSharers.sharersIds.size} dividindo",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                    Text(
+                        text = "R$ ${String.format("%.2f", itemWithSharers.item.valueInCents / 100.0)}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
         }
     }
 }

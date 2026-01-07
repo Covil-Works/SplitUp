@@ -6,10 +6,12 @@ import androidx.lifecycle.viewModelScope
 import com.thaicrew.splitup.check.domain.AddItemUseCase
 import com.thaicrew.splitup.check.domain.AddParticipantsUseCase
 import com.thaicrew.splitup.check.domain.GetCheckByIdFlowUseCase
+import com.thaicrew.splitup.check.domain.GetCheckItemsWithSharersUseCase
 import com.thaicrew.splitup.check.domain.GetItemsByCheckUseCase
 import com.thaicrew.splitup.check.domain.UpdateCheckResult
 import com.thaicrew.splitup.check.domain.UpdateNameCheckUseCase
 import com.thaicrew.splitup.check.domain.GetParticipantsUseCase
+import com.thaicrew.splitup.check.domain.ItemWithSharers
 import com.thaicrew.splitup.check.domain.RemoveParticipantUseCase
 import com.thaicrew.splitup.check.domain.ToggleItemShareUseCase
 import com.thaicrew.splitup.friend.domain.GetActiveFriendsUseCase
@@ -38,7 +40,8 @@ class CheckDetailViewModel @Inject constructor(
     private val getActiveFriendsUseCase: GetActiveFriendsUseCase,
     private val addItemUseCase: AddItemUseCase,
     private val toggleItemShareUseCase: ToggleItemShareUseCase,
-    private val getItemsByCheckUseCase: GetItemsByCheckUseCase
+    private val getItemsByCheckUseCase: GetItemsByCheckUseCase,
+    private val getCheckItemsWithSharersUseCase: GetCheckItemsWithSharersUseCase
 
 ) : ViewModel() {
 
@@ -57,11 +60,50 @@ class CheckDetailViewModel @Inject constructor(
         observeItems()
     }
 
-    private fun observeItems(){
-        getItemsByCheckUseCase(checkId)
-            .onEach { items -> _uiState.update {it.copy(items = items)}
+    private fun observeItems() {
+        // Observa o novo fluxo "rico" (Item + Sharers)
+        getCheckItemsWithSharersUseCase(checkId)
+            .onEach { itemsWithSharers ->
+
+                // 1. Calcula os totais por amigo em memória
+                val totalsMap = calculateFriendTotals(itemsWithSharers)
+
+                // 2. Atualiza o estado com a lista rica e os totais calculados
+                _uiState.update {
+                    it.copy(
+                        itemsWithSharers = itemsWithSharers,
+                        friendTotals = totalsMap,
+                        // Mantemos a lista simples 'items' apenas se ainda for usada em algum lugar legado,
+                        // senão podemos removê-la futuramente. Por enquanto, extraímos os itens dela.
+                        items = itemsWithSharers.map { it.item }
+                    )
+                }
             }
             .launchIn(viewModelScope)
+    }
+
+    fun onChangeViewMode(mode: CheckViewMode) {
+        _uiState.update { it.copy(viewMode = mode) }
+    }
+
+    private fun calculateFriendTotals(items: List<ItemWithSharers>): Map<Int, Long> {
+        val totals = mutableMapOf<Int, Long>()
+
+        items.forEach { entry ->
+            val itemValue = entry.item.valueInCents
+            val sharersCount = entry.sharersIds.size
+
+            if (sharersCount > 0) {
+                // Divisão simples TEM QUE REVISAR PRA USAR UM HELPER
+                val sharePerPerson = itemValue / sharersCount
+
+                entry.sharersIds.forEach { friendId ->
+                    val currentTotal = totals.getOrDefault(friendId, 0L)
+                    totals[friendId] = currentTotal + sharePerPerson
+                }
+            }
+        }
+        return totals
     }
 
     fun onNewItemNameChanged(newName: String) {
@@ -82,12 +124,30 @@ class CheckDetailViewModel @Inject constructor(
     fun onToggleFriendSelection(friendId: Int) {
         _uiState.update { state ->
             val currentSelection = state.selectedFriendIdsForItem.toMutableSet()
+
             if (currentSelection.contains(friendId)) {
                 currentSelection.remove(friendId)
             } else {
                 currentSelection.add(friendId)
             }
-            state.copy(selectedFriendIdsForItem = currentSelection)
+
+            // Verifica se selecionou todos manualmente
+            val allParticipantsIds = state.participants.map { it.id }.toSet()
+            val isFullSelection = currentSelection.containsAll(allParticipantsIds) &&
+                    currentSelection.size == allParticipantsIds.size
+
+            if (isFullSelection) {
+                // Retorno automático ao estado TODOS
+                state.copy(
+                    isAllSelected = true,
+                    selectedFriendIdsForItem = emptySet() // Limpa o set pois a flag manda
+                )
+            } else {
+                state.copy(
+                    isAllSelected = false,
+                    selectedFriendIdsForItem = currentSelection
+                )
+            }
         }
     }
 
@@ -159,25 +219,29 @@ class CheckDetailViewModel @Inject constructor(
 
     fun onAddItemClicked() {
         val state = uiState.value
-
-        // remove tudo que não for número para pegar os centavos
         val cleanString = state.newItemValue.replace(Regex("[^0-9]"), "")
         val valueInCents = cleanString.toLongOrNull() ?: 0L
 
-        // Validações básicas antes de chamar o domínio
+        // Determina quem vai pagar
+        val targetFriendIds = if (state.isAllSelected) {
+            state.participants.map { it.id }
+        } else {
+            state.selectedFriendIdsForItem.toList()
+        }
+
+        // Validações
         if (state.newItemName.isBlank()) return
         if (valueInCents <= 0) {
             viewModelScope.launch { _uiEvent.emit(CheckDetailUiEvent.ShowSnackbar("O valor deve ser maior que zero.")) }
             return
         }
-        if (state.selectedFriendIdsForItem.isEmpty()) {
+        if (targetFriendIds.isEmpty()) {
             viewModelScope.launch { _uiEvent.emit(CheckDetailUiEvent.ShowSnackbar("Selecione quem divide este item.")) }
             return
         }
 
         viewModelScope.launch {
             try {
-                // 1. Cria o Item
                 val newItemId = addItemUseCase(
                     chekId = checkId,
                     itemName = state.newItemName,
@@ -185,8 +249,8 @@ class CheckDetailViewModel @Inject constructor(
                     itemValueInCents = valueInCents
                 ).toInt()
 
-                // 2. Cria os Vínculos (Quem paga)
-                state.selectedFriendIdsForItem.forEach { friendId ->
+                // Usa a lista calculada
+                targetFriendIds.forEach { friendId ->
                     toggleItemShareUseCase(
                         itemId = newItemId,
                         friendId = friendId,
@@ -195,18 +259,28 @@ class CheckDetailViewModel @Inject constructor(
                     )
                 }
 
-                // 3. Limpa o Formulário
+                // Reseta para o TODOS
                 _uiState.update { it.copy(
                     newItemName = "",
                     newItemQuantity = 1,
                     newItemValue = "",
-                    selectedFriendIdsForItem = emptySet()
+                    selectedFriendIdsForItem = emptySet(),
+                    isAllSelected = true // Volta para o padrão
                 )}
 
             } catch (e: Exception) {
                 Timber.e(e, "Erro ao adicionar item")
                 _uiEvent.emit(CheckDetailUiEvent.ShowSnackbar("Erro ao adicionar item."))
             }
+        }
+    }
+
+    fun onRemoveAllSelection() {
+        _uiState.update {
+            it.copy(
+                isAllSelected = false,
+                selectedFriendIdsForItem = emptySet()
+            )
         }
     }
 

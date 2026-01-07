@@ -24,4 +24,7 @@ interface ItemDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertItemShare(share: FriendShareItemEntity)
+
+    @Query("SELECT * FROM friend_share_item_table WHERE check_id = :checkId")
+    fun getItemSharesForCheck(checkId: Int): Flow<List<FriendShareItemEntity>>
 }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.material.icons.filled.Remove
+import com.thaicrew.splitup.check.domain.ItemWithSharers
 
 data class CheckDetailScreenState(
     val check: Check? = null,
@@ -21,5 +22,16 @@ data class CheckDetailScreenState(
     val newItemName: String = "",
     val newItemQuantity: Int = 1,
     val newItemValue: String = "",
-    val selectedFriendIdsForItem: Set<Int> = emptySet() // IDs dos amigos que dividem
+    val selectedFriendIdsForItem: Set<Int> = emptySet(), // IDs dos amigos que dividem
+    val isAllSelected: Boolean = true, // para começar marcado como "Todos"
+
+    // Para visualização
+    val itemsWithSharers: List<ItemWithSharers> = emptyList(), // Lista rica para a UI
+    val friendTotals: Map<Int, Long> = emptyMap(), // ID do Amigo -> Total a pagar em Cents
+    val viewMode: CheckViewMode = CheckViewMode.ByItem, // Controle das abas
 )
+
+enum class CheckViewMode {
+    ByItem,
+    ByFriend
+}

@@ -2,6 +2,7 @@ package com.thaicrew.splitup.check.data
 
 import com.thaicrew.splitup.check.domain.Item
 import com.thaicrew.splitup.check.domain.ItemRepository
+import com.thaicrew.splitup.check.domain.ItemShare
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -40,5 +41,11 @@ class ItemRepositoryImpl @Inject constructor(
 
     override suspend fun removeItemShare(itemId: Int, friendId: Int) {
         itemDao.deleteItemShare(itemId, friendId)
+    }
+
+    override fun getItemShares(checkId: Int): Flow<List<ItemShare>> {
+        return itemDao.getItemSharesForCheck(checkId).map { list ->
+            list.map { ItemShare(itemId = it.itemId, friendId = it.friendId) }
+        }
     }
 }

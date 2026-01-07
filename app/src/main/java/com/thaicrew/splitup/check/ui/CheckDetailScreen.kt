@@ -1,5 +1,6 @@
 package com.thaicrew.splitup.check.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,8 +13,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import timber.log.Timber
-import androidx.compose.foundation.layout.ContextualFlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material.icons.filled.Add
@@ -27,6 +26,9 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 
@@ -135,14 +137,18 @@ fun CheckDetailScreen(
                     ItemParticipantsSection(
                         allParticipants = uiState.participants,
                         selectedIds = uiState.selectedFriendIdsForItem,
-                        onToggleFriend = { viewModel.onToggleFriendSelection(it) }
+                        isAllSelected = uiState.isAllSelected,
+                        onToggleFriend = { viewModel.onToggleFriendSelection(it) },
+                        onRemoveAll = { viewModel.onRemoveAllSelection() }
                     )
 
                     // 3. Botão de Adicionar
                     // Nome preenchido + Valor existe + Pelo menos 1 amigo
+                    val hasParticipants = uiState.participants.isNotEmpty()
+                    val isSelectionValid = (uiState.isAllSelected && hasParticipants) || uiState.selectedFriendIdsForItem.isNotEmpty()
                     val isFormValid = uiState.newItemName.isNotBlank() &&
                             uiState.newItemValue.isNotBlank() &&
-                            uiState.selectedFriendIdsForItem.isNotEmpty()
+                            isSelectionValid
 
                     AddItemButton(
                         isEnabled = isFormValid,
@@ -151,19 +157,37 @@ fun CheckDetailScreen(
 
                     HorizontalDivider()
 
-                    // 4. Lista de Itens SIMPLIFICADA
-                    LazyColumn(
-                        modifier = Modifier.fillMaxWidth().weight(1f),
-                        contentPadding = PaddingValues(16.dp)
-                    ) {
-                        items(uiState.items) { item ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text("${item.quantity}x ${item.name}")                                // Helper simples para formatar centavos (ex: 100 -> R$ 1,00)
+                    // Visualização d prévia da comanda
+                    CheckViewModeSelector(
+                        currentMode = uiState.viewMode,
+                        onModeSelected = { viewModel.onChangeViewMode(it) }
+                    )
 
-                                Text("R$ ${String.format("%.2f", item.valueInCents / 100.0)}")
+                    // 2. O Conteúdo Variável
+                    when (uiState.viewMode) {
+                        CheckViewMode.ByFriend -> {
+                            FriendTotalsList(
+                                participants = uiState.participants,
+                                totals = uiState.friendTotals
+                            )
+                        }
+                        CheckViewMode.ByItem -> {
+                            // Por enquanto, deixamos uma lista provisória até o próximo passo
+                            // ou implementamos a lista de ItemWithSharers básica
+                            LazyColumn(
+                                contentPadding = PaddingValues(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(uiState.itemsWithSharers) { itemWithSharers ->
+                                    val item = itemWithSharers.item
+                                    // Card Provisório só pra não ficar vazio
+                                    Card(modifier = Modifier.fillMaxWidth()) {
+                                        Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                                            Text(item.name)
+                                            Text("R$ ${String.format("%.2f", item.valueInCents / 100.0)}")
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -440,7 +464,9 @@ fun AddItemSection(
 fun ItemParticipantsSection(
     allParticipants: List<com.thaicrew.splitup.friend.domain.Friend>,
     selectedIds: Set<Int>,
-    onToggleFriend: (Int) -> Unit
+    isAllSelected: Boolean, // Novo parâmetro
+    onToggleFriend: (Int) -> Unit,
+    onRemoveAll: () -> Unit // Nova callback
 ) {
     Column(
         modifier = Modifier
@@ -462,25 +488,45 @@ fun ItemParticipantsSection(
                 color = MaterialTheme.colorScheme.error
             )
         } else {
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                allParticipants.forEach { friend ->
-                    FilterChip(
-                        selected = selectedIds.contains(friend.id),
-                        onClick = { onToggleFriend(friend.id) },
-                        label = { Text(friend.name) },
-                        leadingIcon = if (selectedIds.contains(friend.id)) {
-                            {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = "Selecionado",
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                        } else null
-                    )
+            // Lógica de Exibição: TODOS ou MANUAL
+            if (isAllSelected) {
+                // Modo Automático
+                InputChip(
+                    selected = true,
+                    onClick = { /* Não faz nada ao clicar no corpo, apenas no X */ },
+                    label = { Text("TODOS") },
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Remover Todos",
+                            modifier = Modifier
+                                .size(18.dp)
+                                .clickable { onRemoveAll() }
+                        )
+                    }
+                )
+            } else {
+                // Modo Manual
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    allParticipants.forEach { friend ->
+                        FilterChip(
+                            selected = selectedIds.contains(friend.id),
+                            onClick = { onToggleFriend(friend.id) },
+                            label = { Text(friend.name) },
+                            leadingIcon = if (selectedIds.contains(friend.id)) {
+                                {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = "Selecionado",
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            } else null
+                        )
+                    }
                 }
             }
         }
@@ -502,5 +548,115 @@ fun AddItemButton(
         Icon(Icons.Default.Add, contentDescription = null)
         Spacer(modifier = Modifier.width(8.dp))
         Text("Adicionar Item")
+    }
+}
+
+@Composable
+fun CheckViewModeSelector(
+    currentMode: CheckViewMode,
+    onModeSelected: (CheckViewMode) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .height(48.dp)
+            .clip(MaterialTheme.shapes.extraLarge)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.extraLarge),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Opção: POR ITEM
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .padding(4.dp)
+                .clip(MaterialTheme.shapes.large)
+                .background(if (currentMode == CheckViewMode.ByItem) MaterialTheme.colorScheme.primary else Color.Transparent)
+                .clickable { onModeSelected(CheckViewMode.ByItem) },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Por Item",
+                color = if (currentMode == CheckViewMode.ByItem) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.labelLarge
+            )
+        }
+
+        // Opção: POR PESSOA
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .padding(4.dp)
+                .clip(MaterialTheme.shapes.large)
+                .background(if (currentMode == CheckViewMode.ByFriend) MaterialTheme.colorScheme.primary else Color.Transparent)
+                .clickable { onModeSelected(CheckViewMode.ByFriend) },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Por Pessoa",
+                color = if (currentMode == CheckViewMode.ByFriend) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.labelLarge
+            )
+        }
+    }
+}
+
+@Composable
+fun FriendTotalsList(
+    participants: List<com.thaicrew.splitup.friend.domain.Friend>,
+    totals: Map<Int, Long>
+) {
+    if (participants.isEmpty()) {
+        Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+            Text("Nenhum amigo na comanda ainda.", color = MaterialTheme.colorScheme.secondary)
+        }
+    } else {
+        LazyColumn(
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(participants) { friend ->
+                val totalInCents = totals[friend.id] ?: 0L
+                val totalFormatted = String.format("%.2f", totalInCents / 100.0)
+
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = friend.name,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Text(
+                                text = if (totalInCents == 0L) "Nada a pagar" else "Paga a sua parte",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        Text(
+                            text = "R$ $totalFormatted",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+        }
     }
 }

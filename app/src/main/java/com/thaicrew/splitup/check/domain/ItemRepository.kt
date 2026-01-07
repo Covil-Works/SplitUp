@@ -12,4 +12,7 @@ interface ItemRepository {
     suspend fun addItemShare(itemId: Int, friendId: Int, checkId: Int)
 
     suspend fun removeItemShare(itemId: Int, friendId: Int)
+
+    fun getItemShares(checkId: Int): Flow<List<ItemShare>>
+
 }

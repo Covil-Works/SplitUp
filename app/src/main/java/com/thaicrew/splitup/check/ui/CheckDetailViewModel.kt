@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.thaicrew.splitup.check.domain.AddItemUseCase
 import com.thaicrew.splitup.check.domain.AddParticipantsUseCase
+import com.thaicrew.splitup.check.domain.CloseCheckUseCase
 import com.thaicrew.splitup.check.domain.GetCheckByIdFlowUseCase
 import com.thaicrew.splitup.check.domain.GetCheckItemsWithSharersUseCase
 import com.thaicrew.splitup.check.domain.GetItemsByCheckUseCase
@@ -44,7 +45,8 @@ class CheckDetailViewModel @Inject constructor(
     private val getItemsByCheckUseCase: GetItemsByCheckUseCase,
     private val getCheckItemsWithSharersUseCase: GetCheckItemsWithSharersUseCase,
     private val updateItemUseCase: UpdateItemUseCase,
-    private val deleteItemUseCase: UpdateItemUseCase
+    private val deleteItemUseCase: UpdateItemUseCase,
+    private val closeCheckUseCase: CloseCheckUseCase
 
 ) : ViewModel() {
 
@@ -408,4 +410,31 @@ class CheckDetailViewModel @Inject constructor(
         }
     }
 
+    fun onCloseCheckClicked() {
+        _uiState.update { it.copy(showCloseCheckDialog = true) }
+    }
+
+    fun onDismissCloseCheckDialog() {
+        _uiState.update { it.copy(showCloseCheckDialog = false) }
+    }
+
+    fun onCloseCheckConfirmed() {
+        val currentCheck = uiState.value.check ?: return
+
+        // Fecha o diálogo imediatamente
+        onDismissCloseCheckDialog()
+
+        viewModelScope.launch {
+            try {
+                // Chama o UseCase criado no Passo 1
+                closeCheckUseCase(currentCheck)
+
+                // Sucesso: Notifica o usuário e volta para a tela anterior
+                _uiEvent.emit(CheckDetailUiEvent.NavigateBack)
+            } catch (e: Exception) {
+                Timber.e(e, "Erro ao fechar comanda")
+                _uiEvent.emit(CheckDetailUiEvent.ShowSnackbar("Erro ao fechar comanda."))
+            }
+        }
+    }
 }

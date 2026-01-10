@@ -44,7 +44,13 @@ fun CheckDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var showEditDialog by remember { mutableStateOf(false) }
 
-    // ... (Mantenha os LaunchedEffect e Dialogs iguais ao que já tinha) ...
+    if (uiState.showCloseCheckDialog) {
+        CloseCheckConfirmationDialog(
+            onConfirm = { viewModel.onCloseCheckConfirmed() },
+            onDismiss = { viewModel.onDismissCloseCheckDialog() }
+        )
+    }
+
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
             when (event) {
@@ -205,7 +211,24 @@ fun CheckDetailScreen(
                                 )
                             }
                         }
-                    }                }
+                    }
+                }
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Divider()
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = "Ações da Comanda",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    CloseCheckButton(
+                        onClick = { viewModel.onCloseCheckClicked() }
+                    )
+                }
             }
         }
     }
@@ -869,4 +892,48 @@ fun ExpandableItemCard(
             }
         }
     }
+}
+
+@Composable
+fun CloseCheckButton(
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.error // Vermelho para indicar ação destrutiva/final
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Text("Fechar Comanda")
+    }
+}
+
+@Composable
+fun CloseCheckConfirmationDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Fechar comanda?") },
+        text = { Text("Ao fechar a comanda, ela será marcada como paga e arquivada. Tem certeza?") },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text("Sim, fechar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
 }

@@ -37,8 +37,9 @@ data class CheckDetailScreenState(
     val editingValue: String = "",
     val editingSharers: Set<Int> = emptySet(),
 
-    // Fechamento da comanda
-    val showCloseCheckDialog: Boolean = false
+    // Final da comanda
+    val showCloseCheckDialog: Boolean = false,
+    val checkTotal: Long = 0L
 )
 
 enum class CheckViewMode {

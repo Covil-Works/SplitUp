@@ -72,15 +72,15 @@ class CheckDetailViewModel @Inject constructor(
 
                 // 1. Calcula os totais por amigo em memória
                 val totalsMap = calculateFriendTotals(itemsWithSharers)
+                val totalValue = itemsWithSharers.sumOf { it.item.valueInCents * it.item.quantity }
 
                 // 2. Atualiza o estado com a lista rica e os totais calculados
                 _uiState.update {
                     it.copy(
                         itemsWithSharers = itemsWithSharers,
                         friendTotals = totalsMap,
-                        // Mantemos a lista simples 'items' apenas se ainda for usada em algum lugar legado,
-                        // senão podemos removê-la futuramente. Por enquanto, extraímos os itens dela.
-                        items = itemsWithSharers.map { it.item }
+                        items = itemsWithSharers.map { it.item },
+                        checkTotal = totalValue
                     )
                 }
             }

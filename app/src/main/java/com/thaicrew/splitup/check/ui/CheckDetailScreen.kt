@@ -511,7 +511,7 @@ fun AddItemSection(
             OutlinedTextField(
                 value = value,
                 onValueChange = onValueChange,
-                label = { Text("Valor total") },
+                label = { Text("Valor unitário") },
                 modifier = Modifier.weight(1f),
                 singleLine = true,
                 prefix = { Text("R$ ") },
@@ -900,6 +900,7 @@ fun ExpandableItemCard(
 
             } else {
                 // --- MODO RESUMO (O que já tínhamos) ---
+                val totalItemValue = itemWithSharers.item.valueInCents * itemWithSharers.item.quantity
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
@@ -914,7 +915,7 @@ fun ExpandableItemCard(
                         )
                     }
                     Text(
-                        text = "R$ ${String.format("%.2f", itemWithSharers.item.valueInCents / 100.0)}",
+                        text = "R$ ${String.format("%.2f", totalItemValue / 100.0)}",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )

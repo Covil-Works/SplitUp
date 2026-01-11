@@ -43,6 +43,7 @@ fun CheckDetailScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var showEditDialog by remember { mutableStateOf(false) }
+    val checkTotal: Long = 0L
 
     if (uiState.showCloseCheckDialog) {
         CloseCheckConfirmationDialog(

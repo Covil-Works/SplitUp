@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.thaicrew.splitup.check.domain.AddItemUseCase
 import com.thaicrew.splitup.check.domain.AddParticipantsUseCase
+import com.thaicrew.splitup.check.domain.CalculateCheckTotalUseCase
 import com.thaicrew.splitup.check.domain.CloseCheckUseCase
 import com.thaicrew.splitup.check.domain.GetCheckByIdFlowUseCase
 import com.thaicrew.splitup.check.domain.GetCheckItemsWithSharersUseCase
@@ -46,7 +47,8 @@ class CheckDetailViewModel @Inject constructor(
     private val getCheckItemsWithSharersUseCase: GetCheckItemsWithSharersUseCase,
     private val updateItemUseCase: UpdateItemUseCase,
     private val deleteItemUseCase: UpdateItemUseCase,
-    private val closeCheckUseCase: CloseCheckUseCase
+    private val closeCheckUseCase: CloseCheckUseCase,
+    private val calculateCheckTotalUseCase: CalculateCheckTotalUseCase
 
 ) : ViewModel() {
 
@@ -72,7 +74,7 @@ class CheckDetailViewModel @Inject constructor(
 
                 // 1. Calcula os totais por amigo em memória
                 val totalsMap = calculateFriendTotals(itemsWithSharers)
-                val totalValue = itemsWithSharers.sumOf { it.item.valueInCents * it.item.quantity }
+                val totalCheckValue = calculateCheckTotalUseCase(itemsWithSharers.map { it.item })
 
                 // 2. Atualiza o estado com a lista rica e os totais calculados
                 _uiState.update {
@@ -80,7 +82,7 @@ class CheckDetailViewModel @Inject constructor(
                         itemsWithSharers = itemsWithSharers,
                         friendTotals = totalsMap,
                         items = itemsWithSharers.map { it.item },
-                        checkTotal = totalValue
+                        checkTotal = totalCheckValue
                     )
                 }
             }
@@ -95,12 +97,11 @@ class CheckDetailViewModel @Inject constructor(
         val totals = mutableMapOf<Int, Long>()
 
         items.forEach { entry ->
-            val itemValue = entry.item.valueInCents
+            val totalItemValue = entry.item.valueInCents * entry.item.quantity
             val sharersCount = entry.sharersIds.size
 
             if (sharersCount > 0) {
-                // Divisão simples TEM QUE REVISAR PRA USAR UM HELPER
-                val sharePerPerson = itemValue / sharersCount
+                val sharePerPerson = totalItemValue / sharersCount
 
                 entry.sharersIds.forEach { friendId ->
                     val currentTotal = totals.getOrDefault(friendId, 0L)

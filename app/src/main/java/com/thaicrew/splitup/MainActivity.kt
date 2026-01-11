@@ -59,7 +59,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AppBottomNavigation(navController: NavHostController) {
-    val items = listOf(Screen.Checks, Screen.Friends)
+    val items = listOf(Screen.Friends, Screen.Checks, Screen.History)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 

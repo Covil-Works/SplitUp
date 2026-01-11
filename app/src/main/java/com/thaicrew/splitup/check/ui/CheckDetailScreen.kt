@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Remove
@@ -466,11 +467,11 @@ fun AddItemSection(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // 1. Campo Nome do Item
+        // 1. Campo Nome do Item (Topo)
         OutlinedTextField(
             value = name,
             onValueChange = onNameChange,
-            label = { Text("Nome do item (ex: Cerveja)") },
+            label = { Text("Nome do item") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
@@ -478,37 +479,12 @@ fun AddItemSection(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // 2. Linha com Quantidade e Valor
+        // 2. Linha com Valor (Esq) e Quantidade (Dir)
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            horizontalArrangement = Arrangement.spacedBy(16.dp) // Espaço entre os campos
         ) {
-            // Controle de Quantidade
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outline,
-                        shape = MaterialTheme.shapes.small
-                    )
-            ) {
-                IconButton(onClick = { onQuantityChange(-1) }) {
-                    Icon(Icons.Default.Remove, contentDescription = "Diminuir")
-                }
-                Text(
-                    text = quantity.toString(),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(horizontal = 8.dp)
-                )
-                IconButton(onClick = { onQuantityChange(1) }) {
-                    Icon(Icons.Default.Add, contentDescription = "Aumentar")
-                }
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            // Campo de preço com teclado numérico
+            // --- ESQUERDA: Valor Unitário ---
             OutlinedTextField(
                 value = value,
                 onValueChange = onValueChange,
@@ -518,8 +494,33 @@ fun AddItemSection(
                 prefix = { Text("R$ ") },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Done
+                    imeAction = ImeAction.Next
                 )
+            )
+
+            // --- DIREITA: Quantidade ---
+            // Usamos um OutlinedTextField ReadOnly para manter o mesmo estilo visual e altura
+            OutlinedTextField(
+                value = quantity.toString(),
+                onValueChange = {}, // ReadOnly, a mudança é pelos botões
+                label = { Text("Quantidade") },
+                modifier = Modifier.weight(1f),
+                readOnly = true,
+                singleLine = true,
+                textStyle = androidx.compose.ui.text.TextStyle(
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    fontSize = MaterialTheme.typography.bodyLarge.fontSize
+                ),
+                leadingIcon = {
+                    IconButton(onClick = { onQuantityChange(-1) }) {
+                        Icon(Icons.Default.Remove, contentDescription = "Diminuir")
+                    }
+                },
+                trailingIcon = {
+                    IconButton(onClick = { onQuantityChange(1) }) {
+                        Icon(Icons.Default.Add, contentDescription = "Aumentar")
+                    }
+                }
             )
         }
     }
@@ -530,9 +531,9 @@ fun AddItemSection(
 fun ItemParticipantsSection(
     allParticipants: List<com.thaicrew.splitup.friend.domain.Friend>,
     selectedIds: Set<Int>,
-    isAllSelected: Boolean, // Novo parâmetro
+    isAllSelected: Boolean,
     onToggleFriend: (Int) -> Unit,
-    onRemoveAll: () -> Unit // Nova callback
+    onRemoveAll: () -> Unit
 ) {
     Column(
         modifier = Modifier

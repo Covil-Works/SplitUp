@@ -27,4 +27,5 @@ interface CheckRepository {
 
     suspend fun getOpenChecksForFriend(friendId: Int): List<Check>
 
+    suspend fun hasAnyParticipation(friendId: Int): Boolean
 }

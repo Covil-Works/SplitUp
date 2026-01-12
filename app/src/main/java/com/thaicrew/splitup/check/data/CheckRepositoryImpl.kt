@@ -85,4 +85,8 @@ class CheckRepositoryImpl @Inject constructor(
         return dao.getOpenChecksForFriend(friendId).toDomain()
     }
 
+    override suspend fun hasAnyParticipation(friendId: Int): Boolean {
+        return dao.countParticipations(friendId) > 0
+    }
+
 }

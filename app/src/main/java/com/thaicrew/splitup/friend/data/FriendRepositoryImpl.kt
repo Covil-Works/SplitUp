@@ -47,4 +47,10 @@ class FriendRepositoryImpl @Inject constructor(
         Timber.d("Solicitando ao DAO a desativação do amigo com ID: $id")
         dao.deactivateFriend(id)
     }
+
+    override suspend fun hardDeleteFriend(id: Int) {
+        Timber.d("Executando hard delete para o amigo ID: $id")
+        dao.hardDelete(id)
+    }
+
 }

@@ -54,5 +54,8 @@ interface CheckDao{
         WHERE friend_participate_checks.friend_id = :friendId AND check_table.check_status = 'OPEN'
     """)
     suspend fun getOpenChecksForFriend(friendId: Int): List<CheckEntity>
+
+    @Query("SELECT COUNT(*) FROM friend_participate_checks WHERE friend_id = :friendId")
+    suspend fun countParticipations(friendId: Int): Int
 }
 

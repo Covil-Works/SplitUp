@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -28,6 +29,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -122,10 +124,14 @@ fun FriendScreen(
                 CannotDeleteDialog(
                     friendName = dialogState.friend.name,
                     checkNames = dialogState.checkNames,
-                    onDismiss = {
-                        Timber.d("Dialog 'CannotDelete' foi dispensado.")
-                        viewModel.onDialogDismiss()
-                    }
+                    onDismiss = { viewModel.onDialogDismiss() }
+                )
+            }
+            is DialogState.ConfirmHardDelete -> {
+                HardDeleteConfirmationDialog(
+                    friendName = dialogState.friend.name,
+                    onConfirm = { viewModel.onHardDeleteConfirmed() },
+                    onDismiss = { viewModel.onDialogDismiss() }
                 )
             }
             DialogState.Hidden -> {
@@ -157,7 +163,7 @@ fun FriendScreen(
                     friends = uiState.friends,
                     onDeleteFriend = { friend ->
                         Timber.d("Botão 'Delete' clicado para o amigo: '${friend.name}' (ID: ${friend.id})")
-                        viewModel.onSoftDeleteTriggered(friend)
+                        viewModel.onDeleteTriggered(friend)
                     },
                     onEditFriend = { friend ->
                         Timber.d("Botão 'Edit' clicado para o amigo: '${friend.name}' (ID: ${friend.id})")
@@ -384,18 +390,40 @@ private fun CannotDeleteDialog(
         title = { Text("Não é possível remover") },
         text = {
             Column {
-                Text("O amigo '$friendName' está participando das seguintes comandas abertas:")
+                Text("O amigo '$friendName' está nas seguintes comandas abertas:")
                 Spacer(modifier = Modifier.height(8.dp))
                 checkNames.forEach { name ->
-                    Text(text = "• $name", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                    Text("• $name", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
                 }
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("Remova-o das comandas ou feche-as antes de excluir o amigo.")
+                Text("Remova-o das comandas antes de excluir.")
             }
         },
         confirmButton = {
-            Button(onClick = onDismiss) {
-                Text("Ok")
+            TextButton(onClick = onDismiss) { Text("Entendi") }
+        }
+    )
+}
+
+@Composable
+private fun HardDeleteConfirmationDialog(
+    friendName: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Excluir permanentemente?") },
+        text = { Text("O amigo '$friendName' não possui histórico de comandas. Deseja apagá-lo definitivamente do sistema?") },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancelar") }
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+            ) {
+                Text("Apagar")
             }
         }
     )

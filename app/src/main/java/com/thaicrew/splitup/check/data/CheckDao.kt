@@ -47,5 +47,12 @@ interface CheckDao{
         WHERE friend_participate_checks.check_id = :checkId
     """)
     fun getParticipantsByCheckId(checkId: Int): Flow<List<FriendEntity>>
+
+    @Query("""
+        SELECT check_table.* FROM check_table
+        INNER JOIN friend_participate_checks ON check_table.check_id = friend_participate_checks.check_id
+        WHERE friend_participate_checks.friend_id = :friendId AND check_table.check_status = 'OPEN'
+    """)
+    suspend fun getOpenChecksForFriend(friendId: Int): List<CheckEntity>
 }
 

@@ -2,6 +2,7 @@ package com.thaicrew.splitup.friend.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.thaicrew.splitup.check.domain.GetOpenChecksForFriendUseCase
 import com.thaicrew.splitup.friend.domain.AddFriendResult
 import com.thaicrew.splitup.friend.domain.AddFriendUseCase
 import com.thaicrew.splitup.friend.domain.Friend
@@ -30,7 +31,8 @@ class FriendViewModel @Inject constructor(
     private val addFriendUseCase: AddFriendUseCase,
     private val softDeleteFriendUseCase: SoftDeleteFriendUseCase,
     private val reactivateFriendUseCase: ReactivateAddFriendUseCase,
-    private val updateFriendUseCase: UpdateFriendUseCase
+    private val updateFriendUseCase: UpdateFriendUseCase,
+    private val getOpenChecksForFriendUseCase: GetOpenChecksForFriendUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FriendScreenState())
@@ -86,7 +88,19 @@ class FriendViewModel @Inject constructor(
 
     fun onSoftDeleteTriggered(friend: Friend) {
         Timber.i("Evento 'onSoftDeleteTriggered' recebido para o amigo '${friend.name}' (ID: ${friend.id}).")
-        _uiState.update { it.copy(dialogState = DialogState.ConfirmDeactivation(friend)) }
+
+        viewModelScope.launch {
+            val openChecks = getOpenChecksForFriendUseCase(friend.id)
+
+            if (openChecks.isNotEmpty()) {
+                Timber.w("Bloqueando exclusão: Amigo participa de ${openChecks.size} comandas abertas.")
+                val checkNames = openChecks.map { it.name }
+                _uiState.update { it.copy(dialogState = DialogState.CannotDelete(friend, checkNames)) }
+            } else {
+                Timber.d("Nenhuma comanda aberta encontrada. Prosseguindo para confirmação.")
+                _uiState.update { it.copy(dialogState = DialogState.ConfirmDeactivation(friend)) }
+            }
+        }
     }
 
     fun onDialogDismiss() {

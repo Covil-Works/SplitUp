@@ -40,6 +40,7 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -113,6 +114,16 @@ fun FriendScreen(
                     },
                     onDismiss = {
                         Timber.d("Dialog 'ShowEdit' foi dispensado.")
+                        viewModel.onDialogDismiss()
+                    }
+                )
+            }
+            is DialogState.CannotDelete -> {
+                CannotDeleteDialog(
+                    friendName = dialogState.friend.name,
+                    checkNames = dialogState.checkNames,
+                    onDismiss = {
+                        Timber.d("Dialog 'CannotDelete' foi dispensado.")
                         viewModel.onDialogDismiss()
                     }
                 )
@@ -357,6 +368,34 @@ private fun EditFriendDialog(
                 enabled = name.isNotBlank()
             ) {
                 Text("Salvar")
+            }
+        }
+    )
+}
+
+@Composable
+private fun CannotDeleteDialog(
+    friendName: String,
+    checkNames: List<String>,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Não é possível remover") },
+        text = {
+            Column {
+                Text("O amigo '$friendName' está participando das seguintes comandas abertas:")
+                Spacer(modifier = Modifier.height(8.dp))
+                checkNames.forEach { name ->
+                    Text(text = "• $name", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Remova-o das comandas ou feche-as antes de excluir o amigo.")
+            }
+        },
+        confirmButton = {
+            Button(onClick = onDismiss) {
+                Text("Ok")
             }
         }
     )

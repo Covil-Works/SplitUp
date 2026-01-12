@@ -81,4 +81,8 @@ class CheckRepositoryImpl @Inject constructor(
         dao.insertParticipants(entities)
     }
 
+    override suspend fun getOpenChecksForFriend(friendId: Int): List<Check> {
+        return dao.getOpenChecksForFriend(friendId).toDomain()
+    }
+
 }

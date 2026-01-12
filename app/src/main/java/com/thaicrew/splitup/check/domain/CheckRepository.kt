@@ -25,4 +25,6 @@ interface CheckRepository {
 
     suspend fun addParticipants(checkId: Int, friendIds: List<Int>)
 
+    suspend fun getOpenChecksForFriend(friendId: Int): List<Check>
+
 }

@@ -17,6 +17,7 @@ import com.thaicrew.splitup.check.domain.ItemWithSharers
 import com.thaicrew.splitup.check.domain.RemoveParticipantUseCase
 import com.thaicrew.splitup.check.domain.ToggleItemShareUseCase
 import com.thaicrew.splitup.check.domain.UpdateItemUseCase
+import com.thaicrew.splitup.common.utils.CurrencyUtils
 import com.thaicrew.splitup.friend.domain.GetActiveFriendsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -226,7 +227,7 @@ class CheckDetailViewModel @Inject constructor(
     fun onAddItemClicked() {
         val state = uiState.value
         val cleanString = state.newItemValue.replace(Regex("[^0-9]"), "")
-        val valueInCents = cleanString.toLongOrNull() ?: 0L
+        val valueInCents = CurrencyUtils.parseToCents(state.newItemValue)
 
         // Determina quem vai pagar
         val targetFriendIds = if (state.isAllSelected) {
@@ -294,7 +295,7 @@ class CheckDetailViewModel @Inject constructor(
         val item = itemWithSharers.item
         // Converte centavos para String (ex: 1050 -> "1050" ou "10.50")
         // Para manter simples e compatível com a lógica de filtro de digitos, usaremos apenas números
-        val valueString = item.valueInCents.toString()
+        val valueString = CurrencyUtils.formatFromCents(item.valueInCents)
 
         _uiState.update { it.copy(
             editingItemId = item.id,
@@ -341,7 +342,7 @@ class CheckDetailViewModel @Inject constructor(
 
         // Tratamento do valor (String -> Long)
         val cleanString = state.editingValue.replace(Regex("[^0-9]"), "")
-        val valueInCents = cleanString.toLongOrNull() ?: 0L
+        val valueInCents = CurrencyUtils.parseToCents(state.editingValue)
 
         // Validação básica
         if (state.editingName.isBlank()) return
@@ -412,6 +413,13 @@ class CheckDetailViewModel @Inject constructor(
     }
 
     fun onCloseCheckClicked() {
+        if (uiState.value.items.isEmpty()) {
+            viewModelScope.launch {
+                _uiEvent.emit(CheckDetailUiEvent.ShowSnackbar("Não é possível fechar uma comanda sem itens."))
+            }
+            return
+        }
+        // Se tiver itens, prossegue com o fluxo normal (abrir diálogo)
         _uiState.update { it.copy(showCloseCheckDialog = true) }
     }
 

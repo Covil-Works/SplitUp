@@ -2,7 +2,7 @@ package com.thaicrew.splitup.history.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.thaicrew.splitup.check.history.domain.GetPaidChecksUseCase
+import com.thaicrew.splitup.history.domain.GetPaidChecksUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

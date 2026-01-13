@@ -3,10 +3,6 @@ package com.thaicrew.splitup.check.ui
 import com.thaicrew.splitup.check.domain.Check
 import com.thaicrew.splitup.check.domain.Item
 import com.thaicrew.splitup.friend.domain.Friend
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.material.icons.filled.Remove
 import com.thaicrew.splitup.check.domain.ItemWithSharers
 
 data class CheckDetailScreenState(
@@ -31,11 +27,14 @@ data class CheckDetailScreenState(
     val viewMode: CheckViewMode = CheckViewMode.ByItem, // Controle das abas
 
     // Edição de Item
+    val expandedItemId: Int? = null, // Qual item está aberto para ver detalhes
+    val isEditing: Boolean = false,  // Se o item aberto está em modo de edição
     val editingItemId: Int? = null, // relativo ao item aberto (null = nenhum)
     val editingName: String = "",
     val editingQuantity: Int = 1,
     val editingValue: String = "",
     val editingSharers: Set<Int> = emptySet(),
+    val originalEditingSharers: Set<Int> = emptySet(),
 
     // Final da comanda
     val showCloseCheckDialog: Boolean = false,

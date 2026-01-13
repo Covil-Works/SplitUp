@@ -308,23 +308,50 @@ class CheckDetailViewModel @Inject constructor(
         }
     }
 
-    fun onExpandItem(itemWithSharers: com.thaicrew.splitup.check.domain.ItemWithSharers) {
-        val item = itemWithSharers.item
-        // Converte centavos para String (ex: 1050 -> "1050" ou "10.50")
-        // Para manter simples e compatível com a lógica de filtro de digitos, usaremos apenas números
-        val valueString = CurrencyUtils.formatFromCents(item.valueInCents)
+    fun onExpandItem(itemId: Int) {
+        // Se clicar no mesmo que já tá aberto, fecha. Se não, abre o novo.
+        _uiState.update { state ->
+            if (state.expandedItemId == itemId) {
+                state.copy(expandedItemId = null, isEditing = false)
+            } else {
+                state.copy(expandedItemId = itemId, isEditing = false)
+            }
+        }
+    }
 
-        _uiState.update { it.copy(
-            editingItemId = item.id,
-            editingName = item.name,
-            editingQuantity = item.quantity,
-            editingValue = valueString,
-            editingSharers = itemWithSharers.sharersIds.toSet()
-        )}
+    fun onStartEditItem(itemWithSharers: ItemWithSharers) {
+        val item = itemWithSharers.item
+        // editingValue é em REAIS (string), para ser compatível com parseToCents()
+        val valueString = CurrencyUtils.formatFromCents(item.valueInCents)
+        val sharersSnapshot = itemWithSharers.sharersIds.toSet()
+
+        _uiState.update {
+            it.copy(
+                isEditing = true,
+                // Carrega explicitamente os dados atuais do item para o formulário
+                editingName = item.name,
+                editingQuantity = item.quantity,
+                editingValue = valueString,
+                // IMPORTANTe: mantém os pagantes preenchidos para o save
+                editingSharers = sharersSnapshot,
+                // Snapshot para comparação/fallback
+                originalEditingSharers = sharersSnapshot
+            )
+        }
+    }
+
+    fun onCancelEdit() {
+        _uiState.update { it.copy(isEditing = false, originalEditingSharers = emptySet()) }
     }
 
     fun onCollapseItem() {
-        _uiState.update { it.copy(editingItemId = null) }
+        _uiState.update {
+            it.copy(
+                expandedItemId = null,
+                isEditing = false,
+                originalEditingSharers = emptySet()
+            )
+        }
     }
 
     fun onEditNameChange(newName: String) {
@@ -352,13 +379,12 @@ class CheckDetailViewModel @Inject constructor(
 
     fun onSaveEditClicked() {
         val state = uiState.value
-        val itemId = state.editingItemId ?: return
+        val itemId = state.expandedItemId ?: return
 
         // Encontra o item original na lista para podermos comparar os pagantes
         val originalEntry = state.itemsWithSharers.find { it.item.id == itemId } ?: return
 
         // Tratamento do valor (String -> Long)
-        val cleanString = state.editingValue.replace(Regex("[^0-9]"), "")
         val valueInCents = CurrencyUtils.parseToCents(state.editingValue)
 
         // Validação básica
@@ -367,7 +393,15 @@ class CheckDetailViewModel @Inject constructor(
             viewModelScope.launch { _uiEvent.emit(CheckDetailUiEvent.ShowSnackbar("O valor deve ser maior que zero.")) }
             return
         }
-        if (state.editingSharers.isEmpty()) {
+
+        // Fallback robusto: se por qualquer motivo o set vier vazio, não zera pagantes
+        val effectiveSharers = when {
+            state.editingSharers.isNotEmpty() -> state.editingSharers
+            state.originalEditingSharers.isNotEmpty() -> state.originalEditingSharers
+            else -> originalEntry.sharersIds.toSet()
+        }
+
+        if (effectiveSharers.isEmpty()) {
             viewModelScope.launch { _uiEvent.emit(CheckDetailUiEvent.ShowSnackbar("O item precisa ter pelo menos um pagante.")) }
             return
         }
@@ -383,9 +417,8 @@ class CheckDetailViewModel @Inject constructor(
                 updateItemUseCase(updatedItem)
 
                 // 2. Sincroniza os Pagantes (Quem divide)
-                // Compara a lista antiga (originalEntry.sharersIds) com a nova (state.editingSharers)
                 val oldSharers = originalEntry.sharersIds.toSet()
-                val newSharers = state.editingSharers
+                val newSharers = effectiveSharers
 
                 // Quem entrou na divisão?
                 val toAdd = newSharers - oldSharers
@@ -411,7 +444,7 @@ class CheckDetailViewModel @Inject constructor(
 
     fun onDeleteEditClicked() {
         val state = uiState.value
-        val itemId = state.editingItemId ?: return
+        val itemId = state.expandedItemId ?: return
         val originalEntry = state.itemsWithSharers.find { it.item.id == itemId } ?: return
 
         viewModelScope.launch {

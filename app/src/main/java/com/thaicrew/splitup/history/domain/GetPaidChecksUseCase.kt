@@ -1,4 +1,4 @@
-package com.thaicrew.splitup.check.history.domain
+package com.thaicrew.splitup.history.domain
 
 import com.thaicrew.splitup.check.domain.Check
 import com.thaicrew.splitup.check.domain.CheckRepository

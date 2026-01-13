@@ -20,9 +20,9 @@ class ItemRepositoryImpl @Inject constructor(
         return if (item.id == 0) {
             itemDao.insertItem(entity)
         } else {
-            // Como o insertItem usa OnConflictStrategy.REPLACE,
-            // ele também serve como update se o ID já existir.
-            itemDao.insertItem(entity)
+            // IMPORTANTE: não usar REPLACE em update, pois ele faz DELETE+INSERT e dispara CASCADE.
+            itemDao.updateItem(entity)
+            item.id.toLong()
         }
     }
 

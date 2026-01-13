@@ -243,7 +243,6 @@ class CheckDetailViewModel @Inject constructor(
 
     fun onAddItemClicked() {
         val state = uiState.value
-        val cleanString = state.newItemValue.replace(Regex("[^0-9]"), "")
         val valueInCents = CurrencyUtils.parseToCents(state.newItemValue)
 
         // Determina quem vai pagar
@@ -496,4 +495,52 @@ class CheckDetailViewModel @Inject constructor(
             }
         }
     }
+
+    fun onFriendTotalClicked(friendId: Int) {
+        _uiState.update { state ->
+            // Se clicar no mesmo amigo expandido, recolhe.
+            if (state.expandedFriendId == friendId) {
+                state.copy(
+                    expandedFriendId = null,
+                    expandedFriendOwedItems = emptyList()
+                )
+            } else {
+                val owedItems = calculateOwedItemsForFriend(friendId, state.itemsWithSharers)
+                state.copy(
+                    expandedFriendId = friendId,
+                    expandedFriendOwedItems = owedItems
+                )
+            }
+        }
+    }
+
+    private fun calculateOwedItemsForFriend(
+        friendId: Int,
+        items: List<ItemWithSharers>
+    ): List<FriendOwedItem> {
+        // Regra: cada item é dividido igualmente entre os sharers.
+        // O valor do amigo = (valor unitário * quantidade) / N
+        // Considera a multiplicação (quantidade) no total.
+        return items
+            .asSequence()
+            .filter { it.sharersIds.contains(friendId) }
+            .mapNotNull { entry ->
+                val sharersCount = entry.sharersIds.size
+                if (sharersCount <= 0) return@mapNotNull null
+
+                val totalItemValue = entry.item.valueInCents * entry.item.quantity
+                val sharePerPerson = totalItemValue / sharersCount
+
+                FriendOwedItem(
+                    itemId = entry.item.id,
+                    itemName = entry.item.name,
+                    quantity = entry.item.quantity,
+                    unitValueInCents = entry.item.valueInCents,
+                    amountInCents = sharePerPerson
+                )
+            }
+            .sortedByDescending { it.amountInCents }
+            .toList()
+    }
 }
+

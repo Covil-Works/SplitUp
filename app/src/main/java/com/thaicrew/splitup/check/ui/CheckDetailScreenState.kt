@@ -36,9 +36,25 @@ data class CheckDetailScreenState(
     val editingSharers: Set<Int> = emptySet(),
     val originalEditingSharers: Set<Int> = emptySet(),
 
+    // Detalhe por amigo (ao expandir um card do amigo na aba "Por amigo")
+    val expandedFriendId: Int? = null,
+    val expandedFriendOwedItems: List<FriendOwedItem> = emptyList(),
+
     // Final da comanda
     val showCloseCheckDialog: Boolean = false,
     val checkTotal: Long = 0L
+)
+
+/**
+ * Representa um item (ou parte dele) que um amigo deve pagar.
+ * amountInCents já considera quantidade * valor unitário e a divisão entre os participantes do item.
+ */
+data class FriendOwedItem(
+    val itemId: Int,
+    val itemName: String,
+    val quantity: Int,
+    val unitValueInCents: Long,
+    val amountInCents: Long
 )
 
 enum class CheckViewMode {

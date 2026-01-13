@@ -20,7 +20,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
@@ -47,7 +46,6 @@ fun CheckDetailScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var showEditDialog by remember { mutableStateOf(false) }
-    val checkTotal: Long = 0L
 
     if (uiState.showCloseCheckDialog) {
         CloseCheckConfirmationDialog(
@@ -181,10 +179,16 @@ fun CheckDetailScreen(
                             }
                         } else {
                             items(uiState.participants) { friend ->
+                                val isExpanded = uiState.expandedFriendId == friend.id
+                                val owedItems = if (isExpanded) uiState.expandedFriendOwedItems else emptyList()
+
                                 Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-                                    FriendTotalCard(
+                                    ExpandableFriendTotalCard(
                                         friend = friend,
-                                        totalInCents = uiState.friendTotals[friend.id] ?: 0L
+                                        totalInCents = uiState.friendTotals[friend.id] ?: 0L,
+                                        isExpanded = isExpanded,
+                                        owedItems = owedItems,
+                                        onClickExpand = { viewModel.onFriendTotalClicked(friend.id) }
                                     )
                                 }
                             }
@@ -737,14 +741,17 @@ fun FriendTotalsList(
 @Composable
 fun FriendTotalCard(
     friend: com.thaicrew.splitup.friend.domain.Friend,
-    totalInCents: Long
+    totalInCents: Long,
+    onClick: (() -> Unit)? = null
 ) {
     val totalFormatted = String.format("%.2f", totalInCents / 100.0)
 
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .let { m -> if (onClick != null) m.clickable { onClick() } else m }
     ) {
         Row(
             modifier = Modifier
@@ -1020,4 +1027,91 @@ fun CloseCheckConfirmationDialog(
             }
         }
     )
+}
+
+@Composable
+private fun ExpandableFriendTotalCard(
+    friend: Friend,
+    totalInCents: Long,
+    isExpanded: Boolean,
+    owedItems: List<FriendOwedItem>,
+    onClickExpand: () -> Unit
+) {
+    val totalFormatted = String.format("%.2f", totalInCents / 100.0)
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isExpanded) 4.dp else 2.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize()
+            .clickable { onClickExpand() }
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            // Cabeçalho (sempre visível)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(text = friend.name, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        text = if (totalInCents == 0L) "Nada a pagar" else "Paga a sua parte",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Text(
+                    text = "R$ $totalFormatted",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            // Detalhes (só quando expandido)
+            if (isExpanded) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Divider(color = MaterialTheme.colorScheme.surfaceVariant)
+                Spacer(modifier = Modifier.height(12.dp))
+
+                if (owedItems.isEmpty()) {
+                    Text(
+                        text = "Nenhum item para mostrar.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    owedItems.forEach { owed ->
+                        val amountFormatted = String.format("%.2f", owed.amountInCents / 100.0)
+                        val unitFormatted = String.format("%.2f", owed.unitValueInCents / 100.0)
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 6.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(text = owed.itemName, style = MaterialTheme.typography.bodyLarge)
+                                Text(
+                                    text = "${owed.quantity}x × R$ $unitFormatted",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Text(
+                                text = "R$ $amountFormatted",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

@@ -43,10 +43,24 @@ class CheckViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
     fun onAddCheckClicked() {
+        // Mantido por compatibilidade (se ainda existir algum lugar chamando),
+        // mas agora delega para o novo fluxo com nome.
+        onCreateCheckConfirmed("Nova comanda")
+    }
+
+    fun onCreateCheckConfirmed(name: String) {
+        val trimmed = name.trim()
+        if (trimmed.isBlank()) {
+            viewModelScope.launch {
+                _uiEvent.emit(CheckUiEvent.ShowSnackbar("Informe um nome para a comanda."))
+            }
+            return
+        }
+
         viewModelScope.launch {
             try {
-                Timber.i("Criando nova comanda padrão...")
-                val newCheckId = createCheckUseCase("Nova comanda")
+                Timber.i("Criando nova comanda com nome: $trimmed")
+                val newCheckId = createCheckUseCase(trimmed)
                 Timber.d("Comanda criada com ID: $newCheckId. Navegando para detalhes.")
                 _uiEvent.emit(CheckUiEvent.NavigateToCheckDetail(newCheckId.toInt()))
             } catch (e: Exception) {

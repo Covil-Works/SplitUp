@@ -209,6 +209,23 @@ class CheckDetailViewModel @Inject constructor(
     }
 
     fun onRemoveParticipant(friendId: Int) {
+        val state = uiState.value
+
+        // 1. Verifica se o amigo está na lista de pagantes de ALGUM item da comanda
+        val isSharingAnyItem = state.itemsWithSharers.any { it.sharersIds.contains(friendId) }
+
+        if (isSharingAnyItem) {
+            // 2. Pega o nome para exibir na mensagem (UX melhor)
+            val friendName = state.participants.find { it.id == friendId }?.name ?: "esse participante"
+
+            // 3. Emite o erro e aborta a remoção
+            viewModelScope.launch {
+                _uiEvent.emit(CheckDetailUiEvent.ShowSnackbar("Não é possível remover $friendName, ele está dividindo um item."))
+            }
+            return
+        }
+
+        // 4. Se não estiver dividindo nada, prossegue com a remoção
         viewModelScope.launch {
             removeParticipantUseCase(checkId, friendId)
         }

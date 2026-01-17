@@ -7,7 +7,7 @@ import javax.inject.Inject
 data class DeleteCheckUseCase @Inject constructor(
     private val repository: CheckRepository
 ){
-    suspend fun invoke(check: Check){
+    suspend operator fun invoke(check: Check){
         return repository.deleteCheck(check)
     }
 }

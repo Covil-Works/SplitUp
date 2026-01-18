@@ -5,8 +5,9 @@ import com.thaicrew.splitup.friend.domain.FriendRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
+import javax.inject.Inject
 
-class FriendRepositoryImpl(
+class FriendRepositoryImpl @Inject constructor(
     private val dao: FriendDao
 ) : FriendRepository {
     override fun getActiveFriends(): Flow<List<Friend>> {
@@ -46,4 +47,10 @@ class FriendRepositoryImpl(
         Timber.d("Solicitando ao DAO a desativação do amigo com ID: $id")
         dao.deactivateFriend(id)
     }
+
+    override suspend fun hardDeleteFriend(id: Int) {
+        Timber.d("Executando hard delete para o amigo ID: $id")
+        dao.hardDelete(id)
+    }
+
 }

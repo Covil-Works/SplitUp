@@ -1,8 +1,9 @@
 package com.thaicrew.splitup.friend.domain
 
 import timber.log.Timber
+import javax.inject.Inject
 
-class ReactivateAddFriendUseCase(
+class ReactivateAddFriendUseCase @Inject constructor(
     private val repository: FriendRepository
 ) {
     suspend operator fun invoke(friend: Friend) {

@@ -28,4 +28,7 @@ interface FriendDao {
 
     @Query("UPDATE friend SET friend_is_active = 0 WHERE friend_id = :id")
     suspend fun deactivateFriend(id: Int): Int
+
+    @Query("DELETE FROM friend WHERE friend_id = :id")
+    suspend fun hardDelete(id: Int)
 }

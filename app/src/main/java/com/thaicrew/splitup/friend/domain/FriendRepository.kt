@@ -19,4 +19,6 @@ interface FriendRepository {
 
     suspend fun deactivateFriend(id: Int)
 
+    suspend fun hardDeleteFriend(id: Int)
+
 }

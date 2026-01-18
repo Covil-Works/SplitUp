@@ -1,8 +1,9 @@
 package com.thaicrew.splitup.friend.domain
 
 import timber.log.Timber
+import javax.inject.Inject
 
-class AddFriendUseCase(private val repository: FriendRepository) {
+class AddFriendUseCase @Inject constructor(private val repository: FriendRepository) {
 
     suspend operator fun invoke(name: String): AddFriendResult {
         val trimmedName = name.trim()

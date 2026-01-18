@@ -1,9 +1,11 @@
 package com.thaicrew.splitup.friend.domain
 
 import timber.log.Timber
+import javax.inject.Inject
 
-class UpdateFriendUseCase(private val repository: FriendRepository) {
-
+class UpdateFriendUseCase @Inject constructor(
+    private val repository: FriendRepository
+) {
     suspend operator fun invoke(friendToUpdate: Friend, newName: String): UpdateFriendResult {
         Timber.i("Iniciando atualização para o amigo ID: ${friendToUpdate.id} com o novo nome: '$newName'")
         val trimmedName = newName.trim()

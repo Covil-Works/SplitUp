@@ -2,10 +2,14 @@ package com.thaicrew.splitup.friend.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.thaicrew.splitup.check.domain.GetOpenChecksForFriendUseCase
 import com.thaicrew.splitup.friend.domain.AddFriendResult
 import com.thaicrew.splitup.friend.domain.AddFriendUseCase
+import com.thaicrew.splitup.friend.domain.AnalyzeFriendDeletionUseCase
 import com.thaicrew.splitup.friend.domain.Friend
+import com.thaicrew.splitup.friend.domain.FriendDeletionStatus
 import com.thaicrew.splitup.friend.domain.GetActiveFriendsUseCase
+import com.thaicrew.splitup.friend.domain.HardDeleteFriendUseCase
 import com.thaicrew.splitup.friend.domain.ReactivateAddFriendUseCase
 import com.thaicrew.splitup.friend.domain.SoftDeleteFriendUseCase
 import com.thaicrew.splitup.friend.domain.SoftDeleteFriendUseCaseResult
@@ -30,7 +34,10 @@ class FriendViewModel @Inject constructor(
     private val addFriendUseCase: AddFriendUseCase,
     private val softDeleteFriendUseCase: SoftDeleteFriendUseCase,
     private val reactivateFriendUseCase: ReactivateAddFriendUseCase,
-    private val updateFriendUseCase: UpdateFriendUseCase
+    private val updateFriendUseCase: UpdateFriendUseCase,
+    private val getOpenChecksForFriendUseCase: GetOpenChecksForFriendUseCase,
+    private val analyzeFriendDeletionUseCase: AnalyzeFriendDeletionUseCase,
+    private val hardDeleteFriendUseCase: HardDeleteFriendUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FriendScreenState())
@@ -84,9 +91,38 @@ class FriendViewModel @Inject constructor(
         }
     }
 
-    fun onSoftDeleteTriggered(friend: Friend) {
-        Timber.i("Evento 'onSoftDeleteTriggered' recebido para o amigo '${friend.name}' (ID: ${friend.id}).")
-        _uiState.update { it.copy(dialogState = DialogState.ConfirmDeactivation(friend)) }
+    fun onDeleteTriggered(friend: Friend) {
+        Timber.i("Evento 'onDeleteTriggered' recebido para o amigo '${friend.name}' (ID: ${friend.id}).")
+
+        viewModelScope.launch {
+            when (val status = analyzeFriendDeletionUseCase(friend.id)) {
+                is FriendDeletionStatus.Blocked -> {
+                    Timber.w("Exclusão bloqueada. Comandas abertas encontradas.")
+                    _uiState.update { it.copy(dialogState = DialogState.CannotDelete(friend, status.checkNames)) }
+                }
+                FriendDeletionStatus.RequiresSoftDelete -> {
+                    Timber.d("Histórico encontrado. Requer Soft Delete.")
+                    _uiState.update { it.copy(dialogState = DialogState.ConfirmDeactivation(friend)) }
+                }
+                FriendDeletionStatus.SafeHardDelete -> {
+                    Timber.d("Sem histórico. Permitindo Hard Delete.")
+                    _uiState.update { it.copy(dialogState = DialogState.ConfirmHardDelete(friend)) }
+                }
+            }
+        }
+    }
+
+    fun onHardDeleteConfirmed() {
+        val friendToDelete = (uiState.value.dialogState as? DialogState.ConfirmHardDelete)?.friend
+        Timber.i("Evento 'onHardDeleteConfirmed' recebido.")
+        onDialogDismiss()
+
+        if (friendToDelete != null) {
+            viewModelScope.launch {
+                hardDeleteFriendUseCase(friendToDelete.id)
+                _uiEvent.emit(UiEvent.ShowSnackbar("Amigo '${friendToDelete.name}' apagado definitivamente."))
+            }
+        }
     }
 
     fun onDialogDismiss() {

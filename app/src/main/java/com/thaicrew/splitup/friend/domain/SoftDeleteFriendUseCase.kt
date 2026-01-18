@@ -1,9 +1,11 @@
 package com.thaicrew.splitup.friend.domain
 
 import timber.log.Timber
+import javax.inject.Inject
 
-class SoftDeleteFriendUseCase(private val repository: FriendRepository) {
-
+class SoftDeleteFriendUseCase @Inject constructor(
+    private val repository: FriendRepository
+) {
     suspend operator fun invoke(id: Int): SoftDeleteFriendUseCaseResult {
         Timber.i("Iniciando soft delete para o amigo com ID: $id")
 

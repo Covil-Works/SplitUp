@@ -2,7 +2,10 @@ package com.thaicrew.splitup.check.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.thaicrew.splitup.check.domain.Check
+import com.thaicrew.splitup.check.domain.CloseCheckUseCase
 import com.thaicrew.splitup.check.domain.CreateCheckUseCase
+import com.thaicrew.splitup.check.domain.DeleteCheckUseCase
 import com.thaicrew.splitup.check.domain.GetOpenChecksUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -20,7 +23,10 @@ import javax.inject.Inject
 @HiltViewModel
 class CheckViewModel @Inject constructor(
     private val getOpenChecksUseCase: GetOpenChecksUseCase,
-    private val createCheckUseCase: CreateCheckUseCase
+    private val createCheckUseCase: CreateCheckUseCase,
+    private val deleteCheckUseCase: DeleteCheckUseCase,
+    private val closeCheckUseCase: CloseCheckUseCase
+
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CheckScreenState())
@@ -28,6 +34,11 @@ class CheckViewModel @Inject constructor(
 
     private val _uiEvent = MutableSharedFlow<CheckUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
+
+    private val _confirmationState = MutableStateFlow<Pair<Check, SwipeAction>?>(null)
+    val confirmationState: StateFlow<Pair<Check, SwipeAction>?> = _confirmationState.asStateFlow()
+
+    enum class SwipeAction { DELETE, CLOSE }
 
     init {
         Timber.i("CheckViewModel inicializada.")
@@ -42,10 +53,39 @@ class CheckViewModel @Inject constructor(
             }
             .launchIn(viewModelScope)
     }
-    fun onAddCheckClicked() {
-        // Mantido por compatibilidade (se ainda existir algum lugar chamando),
-        // mas agora delega para o novo fluxo com nome.
-        onCreateCheckConfirmed("Nova comanda")
+
+    fun onSwipeAction(check: Check, action: SwipeAction) {
+        _confirmationState.value = check to action
+    }
+
+    fun onDismissDialog() {
+        _confirmationState.value = null
+    }
+
+    // Chamado ao confirmar o Dialog
+    fun onConfirmAction() {
+        val (check, action) = _confirmationState.value ?: return
+        viewModelScope.launch {
+            try {
+                when (action) {
+                    SwipeAction.DELETE -> {
+                        Timber.i("Deletando comanda: ${check.id}")
+                        deleteCheckUseCase(check)
+                        _uiEvent.emit(CheckUiEvent.ShowSnackbar("Comanda excluída."))
+                    }
+                    SwipeAction.CLOSE -> {
+                        Timber.i("Fechando comanda: ${check.id}")
+                        closeCheckUseCase(check)
+                        _uiEvent.emit(CheckUiEvent.ShowSnackbar("Comanda fechada com sucesso."))
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Erro ao executar ação na comanda.")
+                _uiEvent.emit(CheckUiEvent.ShowSnackbar("Erro ao processar ação."))
+            } finally {
+                _confirmationState.value = null
+            }
+        }
     }
 
     fun onCreateCheckConfirmed(name: String) {

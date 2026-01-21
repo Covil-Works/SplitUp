@@ -43,13 +43,21 @@ class PrepareCheckExportDataUseCase @Inject constructor(
                 items = owedItems,
                 totalOwed = owedItems.sumOf { it.amountInCents }
             )
+
         }
+
+        // 3. Totais Globais
+        val itemsTotal = itemsSummary.sumOf { it.totalValue }
+        val serviceFee = (itemsTotal * 0.10).toLong() // 10% simples
+        val grandTotal = itemsTotal + serviceFee
 
         return CheckExportData(
             check = check,
             itemsSummary = itemsSummary,
             friendsSummary = friendsSummary,
-            grandTotal = itemsSummary.sumOf { it.totalValue }
+            itemsTotal = itemsTotal,
+            serviceFee = serviceFee,
+            grandTotal = grandTotal
         )
     }
 }

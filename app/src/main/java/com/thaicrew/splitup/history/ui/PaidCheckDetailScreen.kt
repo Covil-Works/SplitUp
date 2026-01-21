@@ -21,6 +21,10 @@ import com.thaicrew.splitup.check.ui.CheckViewModeSelector
 import com.thaicrew.splitup.check.ui.ExpandableItemCard
 import com.thaicrew.splitup.check.ui.FriendOwedItem
 import com.thaicrew.splitup.friend.domain.Friend
+import android.content.Intent
+import androidx.core.content.FileProvider
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material.icons.filled.Share
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,11 +34,28 @@ fun PaidCheckDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showMenu by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
-            if (event is PaidCheckUiEvent.NavigateBack) {
-                onNavigateBack()
+            when (event) {
+                is PaidCheckUiEvent.NavigateBack -> onNavigateBack()
+                is PaidCheckUiEvent.ShowSnackbar -> { /* Implementar Snackbar se tiver scaffold state */ }
+                is PaidCheckUiEvent.ShareFile -> {
+                    val uri = FileProvider.getUriForFile(
+                        context,
+                        "${context.packageName}.fileprovider",
+                        event.file
+                    )
+
+                    val intent = Intent(Intent.ACTION_SEND).apply {
+                        type = "application/pdf"
+                        putExtra(Intent.EXTRA_STREAM, uri)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+
+                    context.startActivity(Intent.createChooser(intent, "Compartilhar Comanda"))
+                }
             }
         }
     }
@@ -70,6 +91,10 @@ fun PaidCheckDetailScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = { viewModel.onExportClicked() }) {
+                        Icon(Icons.Default.Share, contentDescription = "Exportar PDF")
+                    }
+
                     IconButton(onClick = { showMenu = true }) {
                         Icon(Icons.Default.MoreVert, contentDescription = "Opções")
                     }

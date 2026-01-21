@@ -7,6 +7,10 @@ import com.thaicrew.splitup.check.domain.*
 import com.thaicrew.splitup.check.ui.CheckViewMode
 import com.thaicrew.splitup.check.ui.FriendOwedItem
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.io.File
+import com.thaicrew.splitup.export.domain.PrepareCheckExportDataUseCase
+import com.thaicrew.splitup.export.data.PdfExportManager
+import androidx.compose.material.icons.filled.Share
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -15,6 +19,7 @@ import javax.inject.Inject
 sealed interface PaidCheckUiEvent {
     data class ShowSnackbar(val message: String) : PaidCheckUiEvent
     object NavigateBack : PaidCheckUiEvent
+    data class ShareFile(val file: File) : PaidCheckUiEvent
 }
 
 @HiltViewModel
@@ -25,7 +30,9 @@ class PaidCheckDetailViewModel @Inject constructor(
     private val getParticipantsUseCase: GetParticipantsUseCase,
     private val calculateCheckTotalUseCase: CalculateCheckTotalUseCase,
     private val deleteCheckUseCase: DeleteCheckUseCase,
-    private val reopenCheckUseCase: ReopenCheckUseCase
+    private val reopenCheckUseCase: ReopenCheckUseCase,
+    private val prepareCheckExportDataUseCase: PrepareCheckExportDataUseCase,
+    private val pdfExportManager: PdfExportManager
 ) : ViewModel() {
 
     private val checkId: Int = checkNotNull(savedStateHandle["checkId"])
@@ -142,5 +149,28 @@ class PaidCheckDetailViewModel @Inject constructor(
                 )
             }
             .toList()
+    }
+
+    // --- Exportação ---
+    fun onExportClicked() {
+        val currentCheck = uiState.value.check ?: return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            try {
+                // 1. Prepara os dados
+                val exportData = prepareCheckExportDataUseCase(currentCheck.id)
+
+                // 2. Gera o PDF
+                val file = pdfExportManager.generateCheckPdf(exportData)
+
+                // 3. Avisa a UI para compartilhar
+                _uiEvent.emit(PaidCheckUiEvent.ShareFile(file))
+            } catch (e: Exception) {
+                _uiEvent.emit(PaidCheckUiEvent.ShowSnackbar("Erro ao gerar PDF: ${e.message}"))
+            } finally {
+                _uiState.update { it.copy(isLoading = false) }
+            }
+        }
     }
 }

@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Room
 import com.thaicrew.splitup.common.data.local.AppDatabase
 import com.thaicrew.splitup.friend.data.FriendDao
+import com.thaicrew.splitup.check.data.ItemDao
+import com.thaicrew.splitup.check.data.CheckDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -26,8 +28,17 @@ object DatabaseModule {
     }
 
     @Provides
-    @Singleton
     fun provideFriendDao(appDatabase: AppDatabase): FriendDao {
         return appDatabase.friendDao()
+    }
+
+    @Provides
+    fun provideCheckDao(appDatabase: AppDatabase): CheckDao {
+        return appDatabase.checkDao()
+    }
+
+    @Provides
+    fun provideItemDao(appDatabase: AppDatabase): ItemDao {
+        return appDatabase.itemDao()
     }
 }

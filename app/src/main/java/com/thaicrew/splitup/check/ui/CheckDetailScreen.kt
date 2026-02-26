@@ -81,26 +81,54 @@ fun CheckDetailScreen(
     }
 
     Scaffold(
+
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
-            CenterAlignedTopAppBar(
-                title = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(horizontal = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Botão de Voltar (Esquerda)
+                IconButton(onClick = onNavigateBack) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                }
+
+                // Título e Editar (Centro)
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { showEditDialog = true }
+                        modifier = Modifier
+                            .clip(MaterialTheme.shapes.small)
+                            .clickable { showEditDialog = true }
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
-                        Text(text = uiState.check?.name ?: "Carregando...")
+                        Text(
+                            text = uiState.check?.name ?: "Carregando...",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Medium
+                        )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Icon(Icons.Default.Edit, contentDescription = "Editar", modifier = Modifier.size(16.dp))
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Editar",
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
                     }
                 }
-            )
+
+                // Espaçador invisível (Direita) - Serve apenas para manter o título perfeitamente centrado
+                Spacer(modifier = Modifier.width(48.dp))
+            }
         }
+
     ) { paddingValues ->
         if (uiState.isLoading) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
@@ -255,7 +283,7 @@ fun CheckDetailScreen(
                             )
                             Text(
                                 text = "R$ $formattedTotal",
-                                style = MaterialTheme.typography.headlineSmall, // Texto Grande e em Destaque
+                                style = MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.secondary
                             )
@@ -563,7 +591,7 @@ fun ItemParticipantsSection(
             Text(
                 text = "Adicione amigos à comanda primeiro.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error
+                color = MaterialTheme.colorScheme.onPrimary
             )
         } else {
             // Lógica de Exibição: TODOS ou MANUAL
@@ -732,7 +760,7 @@ fun FriendTotalsList(
 
                         Text(
                             text = "R$ $totalFormatted",
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.secondary,
                             fontWeight = FontWeight.Bold
                         )
@@ -807,6 +835,7 @@ fun ItemSummaryCard(
             Text(
                 text = "R$ ${String.format("%.2f", item.valueInCents / 100.0)}",
                 style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.secondary,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -855,7 +884,7 @@ fun ExpandableItemCard(
                 Text(
                     "Editando Item",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.secondary,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(12.dp))
@@ -920,7 +949,8 @@ fun ExpandableItemCard(
                     }
                     Spacer(modifier = Modifier.weight(1f))
 
-                    TextButton(onClick = onCancelEdit) { Text("Cancelar") }
+                    TextButton(onClick = onCancelEdit, colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.secondary)
+                    ) { Text("Cancelar") }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(onClick = onSaveClick) { Text("Salvar") }
                 }
@@ -997,7 +1027,7 @@ fun CloseCheckButton(
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.error // Vermelho para indicar ação destrutiva/final
+            containerColor = MaterialTheme.colorScheme.primary
         ),
         modifier = Modifier
             .fillMaxWidth()
@@ -1064,12 +1094,12 @@ private fun ExpandableFriendTotalCard(
                     Text(
                         text = if (totalInCents == 0L) "Nada a pagar" else "Paga a sua parte",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.secondary
                     )
                 }
                 Text(
                     text = "R$ $totalFormatted",
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.secondary,
                     fontWeight = FontWeight.Bold
                 )

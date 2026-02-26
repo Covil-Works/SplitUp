@@ -22,6 +22,7 @@ import com.thaicrew.splitup.check.ui.ExpandableItemCard
 import com.thaicrew.splitup.check.ui.FriendOwedItem
 import com.thaicrew.splitup.friend.domain.Friend
 import android.content.Intent
+import androidx.compose.foundation.background
 import androidx.core.content.FileProvider
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.filled.Share
@@ -83,33 +84,54 @@ fun PaidCheckDetailScreen(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text(text = uiState.check?.name ?: "Detalhes") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
-                    }
-                },
-                actions = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(horizontal = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Botão de Voltar (Esquerda)
+                IconButton(onClick = onNavigateBack) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                }
+
+                // Título (Centro)
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = uiState.check?.name ?: "Detalhes",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+
+                // Botões de Ação (Direita)
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { viewModel.onExportClicked() }) {
                         Icon(Icons.Default.Share, contentDescription = "Exportar PDF")
                     }
 
-                    IconButton(onClick = { showMenu = true }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "Opções")
-                    }
-                    DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
-                        DropdownMenuItem(
-                            text = { Text("Reabrir Comanda") },
-                            onClick = { showMenu = false; viewModel.onReopenClicked() }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Apagar Comanda", color = MaterialTheme.colorScheme.error) },
-                            onClick = { showMenu = false; viewModel.onDeleteClicked() }
-                        )
+                    Box {
+                        IconButton(onClick = { showMenu = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "Opções")
+                        }
+                        DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+                            DropdownMenuItem(
+                                text = { Text("Reabrir Comanda") },
+                                onClick = { showMenu = false; viewModel.onReopenClicked() }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Apagar Comanda", color = MaterialTheme.colorScheme.error) },
+                                onClick = { showMenu = false; viewModel.onDeleteClicked() }
+                            )
+                        }
                     }
                 }
-            )
+            }
         }
     ) { paddingValues ->
         if (uiState.isLoading) {

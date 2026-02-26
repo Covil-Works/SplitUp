@@ -256,7 +256,7 @@ fun CheckDetailScreen(
                                 text = "R$ $formattedTotal",
                                 style = MaterialTheme.typography.headlineSmall, // Texto Grande e em Destaque
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
+                                color = MaterialTheme.colorScheme.secondary
                             )
                             Text(
                                 text = "ou R$ $formattedTip com 10%",
@@ -362,7 +362,7 @@ fun ParticipantsSection(
         Text(
             text = "Amigos",
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.secondary
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -472,7 +472,7 @@ fun AddItemSection(
         Text(
             text = "Novo Item",
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.secondary
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -484,7 +484,7 @@ fun AddItemSection(
             label = { Text("Nome do item") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -553,7 +553,7 @@ fun ItemParticipantsSection(
         Text(
             text = "Quem divide?",
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.secondary
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -728,7 +728,7 @@ fun FriendTotalsList(
                         Text(
                             text = "R$ $totalFormatted",
                             style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.primary,
+                            color = MaterialTheme.colorScheme.secondary,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -771,7 +771,7 @@ fun FriendTotalCard(
             Text(
                 text = "R$ $totalFormatted",
                 style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.secondary,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -1065,7 +1065,7 @@ private fun ExpandableFriendTotalCard(
                 Text(
                     text = "R$ $totalFormatted",
                     style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.secondary,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -1106,7 +1106,7 @@ private fun ExpandableFriendTotalCard(
                                 text = "R$ $amountFormatted",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
+                                color = MaterialTheme.colorScheme.secondary
                             )
                         }
                     }

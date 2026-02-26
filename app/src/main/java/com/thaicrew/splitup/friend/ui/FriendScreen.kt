@@ -1,5 +1,6 @@
 package com.thaicrew.splitup.friend.ui
 
+import android.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -39,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
@@ -225,7 +227,10 @@ private fun AddFriendDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.secondary)
+            ){
                 Text("Cancelar")
             }
         }
@@ -323,15 +328,18 @@ private fun DeletionConfirmationDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Confirmar exclusão?") },
-        text = { Text("Você tem certeza que deseja desativar o amigo '$friendName'? Ele não poderá ser adicionado em novas comandas.") },
+        text = { Text("Você tem certeza que deseja apagar $friendName? Esse amigo não poderá ser adicionado em novas comandas.") },
         dismissButton = {
-            Button(onClick = onDismiss) {
+            TextButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.secondary)
+            ){
                 Text("Cancelar")
             }
         },
         confirmButton = {
             Button(onClick = onConfirm) {
-                Text("Confirmar")
+                Text("Apagar")
             }
         }
     )
@@ -428,7 +436,10 @@ private fun CannotDeleteDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Entendi") }
+            Button(
+                onClick = onDismiss
+            )
+            { Text("Entendi") }
         }
     )
 }
@@ -442,14 +453,20 @@ private fun HardDeleteConfirmationDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Excluir permanentemente?") },
-        text = { Text("O amigo '$friendName' não possui histórico de comandas. Deseja apagá-lo definitivamente do sistema?") },
+        text = { Text("Você tem certeza que deseja apagar $friendName? Esse amigo não poderá ser adicionado em novas comandas") },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            TextButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.secondary)
+            )
+            {
+                Text("Cancelar")
+            }
         },
         confirmButton = {
             Button(
                 onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Text("Apagar")
             }

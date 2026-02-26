@@ -35,6 +35,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import com.thaicrew.splitup.check.domain.ItemWithSharers
 import com.thaicrew.splitup.friend.domain.Friend
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -633,12 +634,16 @@ fun CheckViewModeSelector(
     currentMode: CheckViewMode,
     onModeSelected: (CheckViewMode) -> Unit
 ) {
+    val outerRadius = 24.dp // Como a altura é 48.dp, a metade (24) cria um formato de pílula arredondada perfeita
+    val padding = 4.dp
+    val innerRadius = outerRadius - padding // O resultado será exatos 20.dp
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
             .height(48.dp)
-            .clip(MaterialTheme.shapes.extraLarge)
+            .clip(RoundedCornerShape(outerRadius))
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.extraLarge),
         verticalAlignment = Alignment.CenterVertically
@@ -648,8 +653,8 @@ fun CheckViewModeSelector(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                .padding(4.dp)
-                .clip(MaterialTheme.shapes.large)
+                .padding(padding)
+                .clip(RoundedCornerShape(innerRadius))
                 .background(if (currentMode == CheckViewMode.ByItem) MaterialTheme.colorScheme.primary else Color.Transparent)
                 .clickable { onModeSelected(CheckViewMode.ByItem) },
             contentAlignment = Alignment.Center
@@ -666,8 +671,8 @@ fun CheckViewModeSelector(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                .padding(4.dp)
-                .clip(MaterialTheme.shapes.large)
+                .padding(padding)
+                .clip(RoundedCornerShape(innerRadius))
                 .background(if (currentMode == CheckViewMode.ByFriend) MaterialTheme.colorScheme.primary else Color.Transparent)
                 .clickable { onModeSelected(CheckViewMode.ByFriend) },
             contentAlignment = Alignment.Center

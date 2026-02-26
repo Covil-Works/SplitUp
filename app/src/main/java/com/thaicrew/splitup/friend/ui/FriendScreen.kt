@@ -396,7 +396,10 @@ private fun EditFriendDialog(
             )
         },
         dismissButton = {
-            Button(onClick = onDismiss) {
+            TextButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.secondary)
+            ) {
                 Text("Cancelar")
             }
         },

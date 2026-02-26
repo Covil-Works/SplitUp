@@ -128,17 +128,14 @@ fun CheckDetailScreen(
                 Spacer(modifier = Modifier.width(48.dp))
             }
         }
-
     ) { paddingValues ->
         if (uiState.isLoading) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         } else {
-            // AQUI ESTÁ A MÁGICA: Uma única LazyColumn para a tela toda
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues),
-                contentPadding = PaddingValues(bottom = 80.dp) // Espaço extra no fim
             ) {
                 // --- SEÇÃO 1: Participantes (Topo) ---
                 item {
@@ -949,7 +946,7 @@ fun ExpandableItemCard(
                     }
                     Spacer(modifier = Modifier.weight(1f))
 
-                    TextButton(onClick = onCancelEdit, colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.secondary)
+                    TextButton(onClick = onCancelEdit
                     ) { Text("Cancelar") }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(onClick = onSaveClick) { Text("Salvar") }
@@ -1050,7 +1047,7 @@ fun CloseCheckConfirmationDialog(
             Button(
                 onClick = onConfirm,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error
+                    containerColor = MaterialTheme.colorScheme.primary
                 )
             ) {
                 Text("Sim, fechar")

@@ -62,22 +62,35 @@ fun AppBottomNavigation(navController: NavHostController) {
     val items = listOf(Screen.Friends, Screen.Checks, Screen.History)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+    val currentRoute = currentDestination?.route
 
     NavigationBar {
         items.forEach { screen ->
-            val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+
+            // 1. Ajuste do isSelected para manter a aba ativa nas telas de detalhes
+            val isSelected = when (screen) {
+                Screen.Checks -> currentRoute == Screen.Checks.route || currentRoute?.startsWith("check_detail") == true
+                Screen.History -> currentRoute == Screen.History.route || currentRoute?.startsWith("paid_check_detail") == true
+                else -> currentDestination?.hierarchy?.any { it.route == screen.route } == true
+            }
 
             NavigationBarItem(
                 icon = { Icon(screen.icon, contentDescription = null) },
                 label = { Text(screen.label) },
                 selected = isSelected,
                 onClick = {
-                    navController.navigate(screen.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
+                    // 2. Comportamento de voltar para a raiz da aba atual
+                    if (isSelected && currentRoute != screen.route) {
+                        navController.popBackStack(screen.route, inclusive = false)
+                    } else if (!isSelected) {
+                        // Navegação padrão entre abas diferentes
+                        navController.navigate(screen.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
                     }
                 }
             )

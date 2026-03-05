@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -133,8 +135,18 @@ fun CheckScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showCreateDialog = true }) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Criar Comanda")
+            FloatingActionButton(
+                onClick = { showCreateDialog = true },
+                modifier = Modifier
+                    .padding(bottom = 110.dp)
+                    .size(72.dp),
+                shape = CircleShape
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Criar Comanda",
+                    modifier = Modifier.size(32.dp)
+                )
             }
         }
     ) { paddingValues ->

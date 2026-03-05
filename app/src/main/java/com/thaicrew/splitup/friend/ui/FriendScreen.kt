@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -91,8 +93,18 @@ fun FriendScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddFriendDialog = true }) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Adicionar Amigo")
+            FloatingActionButton(
+                onClick = { showAddFriendDialog = true },
+                modifier = Modifier
+                    .padding(bottom = 110.dp)
+                    .size(72.dp),
+                shape = CircleShape
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Adicionar Amigo",
+                    modifier = Modifier.size(32.dp)
+                )
             }
         }
     ) { paddingValues ->

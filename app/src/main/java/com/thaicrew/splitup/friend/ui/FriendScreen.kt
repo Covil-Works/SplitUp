@@ -275,7 +275,7 @@ private fun FriendList(
     } else {
         LazyColumn(
             modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(bottom = 180.dp),
+            contentPadding = PaddingValues(bottom = 205.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(friends, key = { friend -> friend.id }) { friend ->

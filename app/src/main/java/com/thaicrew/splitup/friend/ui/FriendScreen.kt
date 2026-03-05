@@ -3,6 +3,7 @@ package com.thaicrew.splitup.friend.ui
 import android.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -262,6 +263,7 @@ private fun FriendList(
     } else {
         LazyColumn(
             modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(bottom = 180.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(friends, key = { friend -> friend.id }) { friend ->

@@ -7,6 +7,7 @@ import com.thaicrew.splitup.check.domain.AddItemUseCase
 import com.thaicrew.splitup.check.domain.AddParticipantsUseCase
 import com.thaicrew.splitup.check.domain.CalculateCheckTotalUseCase
 import com.thaicrew.splitup.check.domain.CloseCheckUseCase
+import com.thaicrew.splitup.check.domain.DeleteItemUseCase
 import com.thaicrew.splitup.check.domain.GetCheckByIdFlowUseCase
 import com.thaicrew.splitup.check.domain.GetCheckItemsWithSharersUseCase
 import com.thaicrew.splitup.check.domain.GetItemsByCheckUseCase
@@ -47,7 +48,7 @@ class CheckDetailViewModel @Inject constructor(
     private val getItemsByCheckUseCase: GetItemsByCheckUseCase,
     private val getCheckItemsWithSharersUseCase: GetCheckItemsWithSharersUseCase,
     private val updateItemUseCase: UpdateItemUseCase,
-    private val deleteItemUseCase: UpdateItemUseCase,
+    private val deleteItemUseCase: DeleteItemUseCase,
     private val closeCheckUseCase: CloseCheckUseCase,
     private val calculateCheckTotalUseCase: CalculateCheckTotalUseCase
 

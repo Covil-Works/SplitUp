@@ -50,8 +50,13 @@ fun AppNavHost(
             CheckScreen(
                 viewModel = checkViewModel,
                 onNavigateToCreate = { id ->
-                    // Vai para a tela de Edição
-                    navController.navigate(Screen.CheckDetail.createRoute(id))
+                    // Evita navegação duplicada: só navega se ainda estiver na tela de lista
+                    val currentRoute = navController.currentBackStackEntry?.destination?.route
+                    if (currentRoute == Screen.Checks.route) {
+                        navController.navigate(Screen.CheckDetail.createRoute(id)) {
+                            launchSingleTop = true
+                        }
+                    }
                 }
             )
         }
@@ -67,7 +72,13 @@ fun AppNavHost(
             HistoryScreen(
                 viewModel = historyViewModel,
                 onCheckClick = { id ->
-                    navController.navigate(Screen.PaidCheckDetail.createRoute(id))
+                    // Evita navegação duplicada: só navega se ainda estiver na tela de histórico
+                    val currentRoute = navController.currentBackStackEntry?.destination?.route
+                    if (currentRoute == Screen.History.route) {
+                        navController.navigate(Screen.PaidCheckDetail.createRoute(id)) {
+                            launchSingleTop = true
+                        }
+                    }
                 }
             )
         }

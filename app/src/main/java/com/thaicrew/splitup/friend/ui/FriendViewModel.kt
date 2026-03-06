@@ -17,10 +17,8 @@ import com.thaicrew.splitup.friend.domain.UpdateFriendResult
 import com.thaicrew.splitup.friend.domain.UpdateFriendUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -42,8 +40,6 @@ class FriendViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(FriendScreenState())
     val uiState: StateFlow<FriendScreenState> = _uiState.asStateFlow()
-    private val _uiEvent = MutableSharedFlow<UiEvent>()
-    val uiEvent = _uiEvent.asSharedFlow()
 
     init {
         Timber.i("ViewModel inicializada.")
@@ -68,12 +64,10 @@ class FriendViewModel @Inject constructor(
             when (val result = addFriendUseCase(name)) {
                 is AddFriendResult.Success -> {
                     Timber.d("Caso de uso 'addFriend' retornou Success.")
-                    _uiEvent.emit(UiEvent.ShowSnackbar("Amigo adicionado!"))
                 }
 
                 is AddFriendResult.AlreadyExistsActive -> {
                     Timber.d("Caso de uso 'addFriend' retornou AlreadyExistsActive para o amigo: '${result.friend.name}'.")
-                    _uiEvent.emit(UiEvent.ShowSnackbar("O amigo '${result.friend.name}' já está na lista."))
                 }
 
                 is AddFriendResult.NeedsReactivation -> {
@@ -83,9 +77,6 @@ class FriendViewModel @Inject constructor(
 
                 is AddFriendResult.Error -> {
                     Timber.e(result.exception, "Caso de uso 'addFriend' retornou um erro.")
-                    _uiEvent.emit(
-                        UiEvent.ShowSnackbar(result.exception.message ?: "Ocorreu um erro.")
-                    )
                 }
             }
         }
@@ -120,7 +111,7 @@ class FriendViewModel @Inject constructor(
         if (friendToDelete != null) {
             viewModelScope.launch {
                 hardDeleteFriendUseCase(friendToDelete.id)
-                _uiEvent.emit(UiEvent.ShowSnackbar("Amigo '${friendToDelete.name}' apagado definitivamente."))
+                Timber.d("Amigo '${friendToDelete.name}' apagado definitivamente.")
             }
         }
     }
@@ -138,7 +129,7 @@ class FriendViewModel @Inject constructor(
         if (friendToReactivate != null) {
             viewModelScope.launch {
                 reactivateFriendUseCase(friendToReactivate)
-                _uiEvent.emit(UiEvent.ShowSnackbar("O amigo '${friendToReactivate.name}' foi reativado!"))
+                Timber.d("O amigo '${friendToReactivate.name}' foi reativado!")
             }
         } else {
             Timber.w("onReactivationConfirmed foi chamado, mas o amigo a ser reativado era nulo no estado.")
@@ -155,15 +146,12 @@ class FriendViewModel @Inject constructor(
                 when (softDeleteFriendUseCase(friendToDelete.id)) {
                     is SoftDeleteFriendUseCaseResult.Success -> {
                         Timber.d("Soft delete do amigo ID ${friendToDelete.id} bem-sucedido.")
-                        _uiEvent.emit(UiEvent.ShowSnackbar("Amigo desativado com sucesso."))
                     }
                     is SoftDeleteFriendUseCaseResult.FriendNotFound -> {
                         Timber.w("Soft delete falhou: amigo ID ${friendToDelete.id} não encontrado.")
-                        _uiEvent.emit(UiEvent.ShowSnackbar("Erro: Amigo não encontrado."))
                     }
                     is SoftDeleteFriendUseCaseResult.AlreadyInactive -> {
                         Timber.d("Soft delete para o amigo ID ${friendToDelete.id} não foi necessário, já estava inativo.")
-                        _uiEvent.emit(UiEvent.ShowSnackbar("Este amigo já estava desativado."))
                     }
                 }
             }
@@ -183,14 +171,10 @@ class FriendViewModel @Inject constructor(
             when (val result = updateFriendUseCase(friend, newName)) {
                 is UpdateFriendResult.Success -> {
                     Timber.d("Atualização do amigo ID ${friend.id} bem-sucedida.")
-                    _uiEvent.emit(UiEvent.ShowSnackbar("Amigo atualizado com sucesso!"))
                     onDialogDismiss()
                 }
                 is UpdateFriendResult.Error -> {
                     Timber.e(result.exception, "Falha ao atualizar o amigo ID ${friend.id}.")
-                    _uiEvent.emit(
-                        UiEvent.ShowSnackbar(result.exception.message ?: "Ocorreu um erro desconhecido.")
-                    )
                 }
             }
         }

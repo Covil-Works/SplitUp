@@ -10,14 +10,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.File
 import com.thaicrew.splitup.export.domain.PrepareCheckExportDataUseCase
 import com.thaicrew.splitup.export.data.PdfExportManager
-import androidx.compose.material.icons.filled.Share
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import timber.log.Timber
 
 // Eventos de Navegação
 sealed interface PaidCheckUiEvent {
-    data class ShowSnackbar(val message: String) : PaidCheckUiEvent
     object NavigateBack : PaidCheckUiEvent
     data class ShareFile(val file: File) : PaidCheckUiEvent
 }
@@ -167,7 +166,7 @@ class PaidCheckDetailViewModel @Inject constructor(
                 // 3. Avisa a UI para compartilhar
                 _uiEvent.emit(PaidCheckUiEvent.ShareFile(file))
             } catch (e: Exception) {
-                _uiEvent.emit(PaidCheckUiEvent.ShowSnackbar("Erro ao gerar PDF: ${e.message}"))
+                Timber.e(e, "Erro ao gerar PDF: ${e.message}")
             } finally {
                 _uiState.update { it.copy(isLoading = false) }
             }

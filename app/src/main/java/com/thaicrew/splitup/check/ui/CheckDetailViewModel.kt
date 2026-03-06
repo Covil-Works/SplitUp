@@ -218,10 +218,8 @@ class CheckDetailViewModel @Inject constructor(
             // 2. Pega o nome para exibir na mensagem (UX melhor)
             val friendName = state.participants.find { it.id == friendId }?.name ?: "esse participante"
 
-            // 3. Emite o erro e aborta a remoção
-            viewModelScope.launch {
-                _uiEvent.emit(CheckDetailUiEvent.ShowSnackbar("Não é possível remover $friendName, ele está dividindo um item."))
-            }
+            // 3. Aborta a remoção
+            Timber.w("Não é possível remover $friendName, ele está dividindo um item.")
             return
         }
 
@@ -236,7 +234,7 @@ class CheckDetailViewModel @Inject constructor(
         viewModelScope.launch {
             when (val result = updateCheckUseCase(currentCheck, newName)) {
                 is UpdateCheckResult.Success -> Timber.i("Nome atualizado")
-                is UpdateCheckResult.Error -> _uiEvent.emit(CheckDetailUiEvent.ShowSnackbar(result.message))
+                is UpdateCheckResult.Error -> Timber.e("Erro ao atualizar nome: ${result.message}")
             }
         }
     }
@@ -255,11 +253,9 @@ class CheckDetailViewModel @Inject constructor(
         // Validações
         if (state.newItemName.isBlank()) return
         if (valueInCents <= 0) {
-            viewModelScope.launch { _uiEvent.emit(CheckDetailUiEvent.ShowSnackbar("O valor deve ser maior que zero.")) }
             return
         }
         if (targetFriendIds.isEmpty()) {
-            viewModelScope.launch { _uiEvent.emit(CheckDetailUiEvent.ShowSnackbar("Selecione quem divide este item.")) }
             return
         }
 
@@ -293,7 +289,6 @@ class CheckDetailViewModel @Inject constructor(
 
             } catch (e: Exception) {
                 Timber.e(e, "Erro ao adicionar item")
-                _uiEvent.emit(CheckDetailUiEvent.ShowSnackbar("Erro ao adicionar item."))
             }
         }
     }
@@ -389,7 +384,6 @@ class CheckDetailViewModel @Inject constructor(
         // Validação básica
         if (state.editingName.isBlank()) return
         if (valueInCents <= 0) {
-            viewModelScope.launch { _uiEvent.emit(CheckDetailUiEvent.ShowSnackbar("O valor deve ser maior que zero.")) }
             return
         }
 
@@ -401,7 +395,6 @@ class CheckDetailViewModel @Inject constructor(
         }
 
         if (effectiveSharers.isEmpty()) {
-            viewModelScope.launch { _uiEvent.emit(CheckDetailUiEvent.ShowSnackbar("O item precisa ter pelo menos um pagante.")) }
             return
         }
 
@@ -436,7 +429,6 @@ class CheckDetailViewModel @Inject constructor(
 
             } catch (e: Exception) {
                 Timber.e(e, "Erro ao atualizar item")
-                _uiEvent.emit(CheckDetailUiEvent.ShowSnackbar("Erro ao salvar alterações."))
             }
         }
     }
@@ -456,16 +448,12 @@ class CheckDetailViewModel @Inject constructor(
 
             } catch (e: Exception) {
                 Timber.e(e, "Erro ao excluir item")
-                _uiEvent.emit(CheckDetailUiEvent.ShowSnackbar("Erro ao excluir item."))
             }
         }
     }
 
     fun onCloseCheckClicked() {
         if (uiState.value.items.isEmpty()) {
-            viewModelScope.launch {
-                _uiEvent.emit(CheckDetailUiEvent.ShowSnackbar("Não é possível fechar uma comanda sem itens."))
-            }
             return
         }
         // Se tiver itens, prossegue com o fluxo normal (abrir diálogo)
@@ -491,7 +479,6 @@ class CheckDetailViewModel @Inject constructor(
                 _uiEvent.emit(CheckDetailUiEvent.NavigateBack)
             } catch (e: Exception) {
                 Timber.e(e, "Erro ao fechar comanda")
-                _uiEvent.emit(CheckDetailUiEvent.ShowSnackbar("Erro ao fechar comanda."))
             }
         }
     }

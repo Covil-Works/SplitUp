@@ -41,7 +41,6 @@ fun PaidCheckDetailScreen(
         viewModel.uiEvent.collect { event ->
             when (event) {
                 is PaidCheckUiEvent.NavigateBack -> onNavigateBack()
-                is PaidCheckUiEvent.ShowSnackbar -> { /* Implementar Snackbar se tiver scaffold state */ }
                 is PaidCheckUiEvent.ShareFile -> {
                     val uri = FileProvider.getUriForFile(
                         context,

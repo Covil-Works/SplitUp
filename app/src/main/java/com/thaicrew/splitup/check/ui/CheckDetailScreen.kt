@@ -45,7 +45,6 @@ fun CheckDetailScreen(
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
     var showEditDialog by remember { mutableStateOf(false) }
 
     if (uiState.showCloseCheckDialog) {
@@ -58,7 +57,6 @@ fun CheckDetailScreen(
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
             when (event) {
-                is CheckDetailUiEvent.ShowSnackbar -> snackbarHostState.showSnackbar(event.message)
                 CheckDetailUiEvent.NavigateBack -> onNavigateBack()
             }
         }
@@ -81,8 +79,6 @@ fun CheckDetailScreen(
     }
 
     Scaffold(
-
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             Row(
                 modifier = Modifier

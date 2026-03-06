@@ -71,17 +71,14 @@ class CheckViewModel @Inject constructor(
                     SwipeAction.DELETE -> {
                         Timber.i("Deletando comanda: ${check.id}")
                         deleteCheckUseCase(check)
-                        _uiEvent.emit(CheckUiEvent.ShowSnackbar("Comanda excluída."))
                     }
                     SwipeAction.CLOSE -> {
                         Timber.i("Fechando comanda: ${check.id}")
                         closeCheckUseCase(check)
-                        _uiEvent.emit(CheckUiEvent.ShowSnackbar("Comanda fechada com sucesso."))
                     }
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Erro ao executar ação na comanda.")
-                _uiEvent.emit(CheckUiEvent.ShowSnackbar("Erro ao processar ação."))
             } finally {
                 _confirmationState.value = null
             }
@@ -91,9 +88,6 @@ class CheckViewModel @Inject constructor(
     fun onCreateCheckConfirmed(name: String) {
         val trimmed = name.trim()
         if (trimmed.isBlank()) {
-            viewModelScope.launch {
-                _uiEvent.emit(CheckUiEvent.ShowSnackbar("Informe um nome para a comanda."))
-            }
             return
         }
 
@@ -105,7 +99,6 @@ class CheckViewModel @Inject constructor(
                 _uiEvent.emit(CheckUiEvent.NavigateToCheckDetail(newCheckId.toInt()))
             } catch (e: Exception) {
                 Timber.e(e, "Erro ao criar nova comanda.")
-                _uiEvent.emit(CheckUiEvent.ShowSnackbar("Erro ao criar comanda."))
             }
         }
     }
@@ -115,4 +108,5 @@ class CheckViewModel @Inject constructor(
             _uiEvent.emit(CheckUiEvent.NavigateToCheckDetail(checkId))
         }
     }
+
 }

@@ -26,8 +26,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
@@ -61,16 +59,12 @@ fun CheckScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val confirmationState by viewModel.confirmationState.collectAsStateWithLifecycle()
 
-    val snackbarHostState = remember { SnackbarHostState() }
     var showCreateDialog by rememberSaveable { mutableStateOf(false) }
     var checkName by rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
             when (event) {
-                is CheckUiEvent.ShowSnackbar -> {
-                    snackbarHostState.showSnackbar(event.message)
-                }
                 is CheckUiEvent.NavigateToCheckDetail -> {
                     onNavigateToCreate(event.checkId)
                 }
@@ -133,7 +127,6 @@ fun CheckScreen(
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showCreateDialog = true },

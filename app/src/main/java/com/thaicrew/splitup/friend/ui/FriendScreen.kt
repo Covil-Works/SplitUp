@@ -1,6 +1,5 @@
 package com.thaicrew.splitup.friend.ui
 
-import android.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,12 +30,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,22 +58,9 @@ fun FriendScreen(
     viewModel: FriendViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
     var showAddFriendDialog by remember { mutableStateOf(false) }
 
     Timber.d("FriendScreen em recomposição. DialogState: ${uiState.dialogState::class.simpleName}, Loading: ${uiState.isLoading}")
-
-    // Mostra a Snackbar quando houver uma mensagem de erro no estado
-    LaunchedEffect(key1 = true) {
-        viewModel.uiEvent.collect { event ->
-            when (event) {
-                is UiEvent.ShowSnackbar -> {
-                    Timber.i("Recebido UiEvent para mostrar Snackbar com a mensagem: '${event.message}'")
-                    snackbarHostState.showSnackbar(event.message)
-                }
-            }
-        }
-    }
 
     // Lógica para mostrar o Dialog de Adição
     if (showAddFriendDialog) {
@@ -91,7 +74,6 @@ fun FriendScreen(
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddFriendDialog = true },

@@ -36,6 +36,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import com.thaicrew.splitup.check.domain.ItemWithSharers
 import com.thaicrew.splitup.friend.domain.Friend
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Brush
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,14 +92,16 @@ fun CheckDetailScreen(
 
     Scaffold(
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(horizontal = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                // Barra sólida
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(70.dp)
+                        .background(MaterialTheme.colorScheme.surfaceBright)
+                        .padding(horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                 // Botão de Voltar (Esquerda)
                 IconButton(onClick = onNavigateBack) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
@@ -133,6 +136,21 @@ fun CheckDetailScreen(
 
                 // Espaçador invisível (Direita) - Serve apenas para manter o título perfeitamente centrado
                 Spacer(modifier = Modifier.width(48.dp))
+            }
+                // Fade/sombra abaixo da barra
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(16.dp)
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.background.copy(alpha = 0.9f),
+                                    Color.Transparent
+                                )
+                            )
+                        )
+                )
             }
         }
     ) { paddingValues ->

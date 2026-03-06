@@ -27,6 +27,7 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemColors
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -96,7 +97,6 @@ class MainActivity : ComponentActivity() {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(top = innerPadding.calculateTopPadding())
                         ) {
                             AppNavHost(
                                 navController = navController,
@@ -113,29 +113,46 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainTopBar(onMenuClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(80.dp)
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // LEFT: Logo placeholder (will be replaced with the app logo)
-        Box(modifier = Modifier.size(48.dp))
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        // RIGHT: Menu icon (three horizontal lines)
-        IconButton(
-            onClick = onMenuClick,
-            modifier = Modifier.padding(end = 8.dp, top = 20.dp)
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // Barra sólida
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(70.dp)
+                .background(MaterialTheme.colorScheme.primary)
+                .padding(horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Default.Menu,
-                contentDescription = "Menu"
-            )
+            // LEFT: Logo placeholder (will be replaced with the app logo)
+            Box(modifier = Modifier.size(48.dp))
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // RIGHT: Menu icon (three horizontal lines)
+            IconButton(
+                onClick = onMenuClick,
+                modifier = Modifier.padding(end = 8.dp, top = 20.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Menu,
+                    contentDescription = "Menu"
+                )
+            }
         }
+        // Fade/sombra abaixo da barra
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(24.dp)
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.background.copy(alpha = 0.9f),
+                            Color.Transparent
+                        )
+                    )
+                )
+        )
     }
 }
 
@@ -155,7 +172,7 @@ fun AppBottomNavigation(navController: NavHostController) {
                 brush = Brush.verticalGradient(
                     colors = listOf(
                         Color.Transparent, // Começa invisível no topo do Box
-                        MaterialTheme.colorScheme.background.copy(alpha = 0.9f) // Termina preto com 70% de opacidade na base
+                        MaterialTheme.colorScheme.background.copy(alpha = 0.9f) // Termina com a cor das barras na base
                     )
                 )
             )

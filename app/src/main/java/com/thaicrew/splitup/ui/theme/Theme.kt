@@ -27,7 +27,10 @@ private val DarkColorScheme = darkColorScheme(
     surfaceContainer = SurfaceBlueGrey,
     surfaceContainerHigh = SurfaceBlueGrey,
     surfaceContainerHighest = SurfaceBlueGrey,
-    surfaceContainerLow = SurfaceBlueGrey
+    surfaceContainerLow = SurfaceBlueGrey,
+
+    // Cor de fundo das barras (topbar e navbar) — edite BarBackground em Color.kt
+    surfaceBright = BarBackground
 )
 @Composable
 fun SplitUpTheme(

@@ -31,4 +31,7 @@ interface ItemDao {
 
     @Query("SELECT * FROM friend_share_item_table WHERE check_id = :checkId")
     fun getItemSharesForCheck(checkId: Int): Flow<List<FriendShareItemEntity>>
+
+    @Query("SELECT COUNT(*) FROM item_table WHERE check_id = :checkId")
+    suspend fun countItemsForCheck(checkId: Int): Int
 }

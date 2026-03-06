@@ -102,6 +102,18 @@ fun CheckScreen(
         )
     }
 
+    // Dialog informativo (quando ação não pode ser executada)
+    uiState.infoDialogMessage?.let { message ->
+        AlertDialog(
+            onDismissRequest = { viewModel.onDismissInfoDialog() },
+            title = { Text(text = "Atenção") },
+            text = { Text(text = message) },
+            confirmButton = {
+                Button(onClick = { viewModel.onDismissInfoDialog() }) { Text("Ok") }
+            }
+        )
+    }
+
     // Dialog de Confirmação de Ação (Swipe)
     confirmationState?.let { (check, action) ->
         val title = if (action == CheckViewModel.SwipeAction.DELETE) "Excluir Comanda?" else "Fechar Comanda?"

@@ -218,8 +218,10 @@ class CheckDetailViewModel @Inject constructor(
             // 2. Pega o nome para exibir na mensagem (UX melhor)
             val friendName = state.participants.find { it.id == friendId }?.name ?: "esse participante"
 
-            // 3. Aborta a remoção
-            Timber.w("Não é possível remover $friendName, ele está dividindo um item.")
+            // 3. Aborta a remoção e mostra dialog informativo
+            _uiState.update {
+                it.copy(infoDialogMessage = "Não é possível remover o amigo $friendName porque ele já divide um item nesta comanda.")
+            }
             return
         }
 
@@ -227,6 +229,10 @@ class CheckDetailViewModel @Inject constructor(
         viewModelScope.launch {
             removeParticipantUseCase(checkId, friendId)
         }
+    }
+
+    fun onDismissInfoDialog() {
+        _uiState.update { it.copy(infoDialogMessage = null) }
     }
 
     fun onNameChanged(newName: String) {

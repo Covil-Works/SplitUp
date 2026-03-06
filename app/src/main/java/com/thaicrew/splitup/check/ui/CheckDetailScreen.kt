@@ -54,6 +54,17 @@ fun CheckDetailScreen(
         )
     }
 
+    uiState.infoDialogMessage?.let { message ->
+        AlertDialog(
+            onDismissRequest = { viewModel.onDismissInfoDialog() },
+            title = { Text("Atenção") },
+            text = { Text(message) },
+            confirmButton = {
+                Button(onClick = { viewModel.onDismissInfoDialog() }) { Text("Ok") }
+            }
+        )
+    }
+
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
             when (event) {
@@ -248,50 +259,52 @@ fun CheckDetailScreen(
                         }
                     }
                 }
-                // --- SEÇÃO 7: Total e Fechamento ---
-                item {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Divider()
-                    Spacer(modifier = Modifier.height(16.dp))
+                // --- SEÇÃO 7: Total e Fechamento (só aparece quando há itens) ---
+                if (uiState.items.isNotEmpty()) {
+                    item {
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Divider()
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                    // Cálculos de formatação (convertendo cents para Real)
-                    val total = uiState.checkTotal
-                    val totalWithTip = (total * 1.1).toLong() // +10%
+                        // Cálculos de formatação (convertendo cents para Real)
+                        val total = uiState.checkTotal
+                        val totalWithTip = (total * 1.1).toLong() // +10%
 
-                    val formattedTotal = String.format("%.2f", total / 100.0)
-                    val formattedTip = String.format("%.2f", totalWithTip / 100.0)
+                        val formattedTotal = String.format("%.2f", total / 100.0)
+                        val formattedTip = String.format("%.2f", totalWithTip / 100.0)
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // LADO ESQUERDO: Informações de Valores
-                        Column {
-                            Text(
-                                text = "Total",
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text(
-                                text = "R$ $formattedTotal",
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
-                            Text(
-                                text = "ou R$ $formattedTip com 10%",
-                                style = MaterialTheme.typography.bodySmall, // Texto menor, estilo "parcelado"
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // LADO ESQUERDO: Informações de Valores
+                            Column {
+                                Text(
+                                    text = "Total",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "R$ $formattedTotal",
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                                Text(
+                                    text = "ou R$ $formattedTip com 10%",
+                                    style = MaterialTheme.typography.bodySmall, // Texto menor, estilo "parcelado"
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+
+                            // LADO DIREITO: Botão de Fechar
+                            CloseCheckButton(
+                                onClick = { viewModel.onCloseCheckClicked() }
                             )
                         }
-
-                        // LADO DIREITO: Botão de Fechar
-                        CloseCheckButton(
-                            onClick = { viewModel.onCloseCheckClicked() }
-                        )
                     }
                 }
             }

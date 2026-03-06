@@ -42,7 +42,10 @@ data class CheckDetailScreenState(
 
     // Final da comanda
     val showCloseCheckDialog: Boolean = false,
-    val checkTotal: Long = 0L
+    val checkTotal: Long = 0L,
+
+    // Dialog informativo
+    val infoDialogMessage: String? = null
 )
 
 /**

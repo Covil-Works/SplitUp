@@ -3,6 +3,7 @@ package com.thaicrew.splitup.check.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.thaicrew.splitup.check.domain.Check
+import com.thaicrew.splitup.check.domain.CheckHasItemsUseCase
 import com.thaicrew.splitup.check.domain.CloseCheckUseCase
 import com.thaicrew.splitup.check.domain.CreateCheckUseCase
 import com.thaicrew.splitup.check.domain.DeleteCheckUseCase
@@ -25,7 +26,8 @@ class CheckViewModel @Inject constructor(
     private val getOpenChecksUseCase: GetOpenChecksUseCase,
     private val createCheckUseCase: CreateCheckUseCase,
     private val deleteCheckUseCase: DeleteCheckUseCase,
-    private val closeCheckUseCase: CloseCheckUseCase
+    private val closeCheckUseCase: CloseCheckUseCase,
+    private val checkHasItemsUseCase: CheckHasItemsUseCase
 
 ) : ViewModel() {
 
@@ -55,7 +57,27 @@ class CheckViewModel @Inject constructor(
     }
 
     fun onSwipeAction(check: Check, action: SwipeAction) {
-        _confirmationState.value = check to action
+        when (action) {
+            SwipeAction.DELETE -> {
+                _confirmationState.value = check to action
+            }
+            SwipeAction.CLOSE -> {
+                viewModelScope.launch {
+                    val hasItems = checkHasItemsUseCase(check.id)
+                    if (hasItems) {
+                        _confirmationState.value = check to action
+                    } else {
+                        _uiState.update {
+                            it.copy(infoDialogMessage = "Não é possível fechar a comanda '${check.name}' porque ela não possui nenhum item adicionado.")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun onDismissInfoDialog() {
+        _uiState.update { it.copy(infoDialogMessage = null) }
     }
 
     fun onDismissDialog() {

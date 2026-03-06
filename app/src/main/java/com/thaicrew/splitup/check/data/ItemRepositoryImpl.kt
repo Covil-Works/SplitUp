@@ -48,4 +48,8 @@ class ItemRepositoryImpl @Inject constructor(
             list.map { ItemShare(itemId = it.itemId, friendId = it.friendId) }
         }
     }
+
+    override suspend fun hasItems(checkId: Int): Boolean {
+        return itemDao.countItemsForCheck(checkId) > 0
+    }
 }

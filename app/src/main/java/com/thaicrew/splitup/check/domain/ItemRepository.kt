@@ -15,4 +15,5 @@ interface ItemRepository {
 
     fun getItemShares(checkId: Int): Flow<List<ItemShare>>
 
+    suspend fun hasItems(checkId: Int): Boolean
 }

@@ -119,7 +119,7 @@ fun MainTopBar(onMenuClick: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(70.dp)
-                .background(MaterialTheme.colorScheme.primary)
+                .background(MaterialTheme.colorScheme.surface)
                 .padding(horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -202,9 +202,9 @@ fun AppBottomNavigation(navController: NavHostController) {
 
                 NavigationBarItem(
                     colors = NavigationBarItemColors(
-                        selectedIconColor = MaterialTheme.colorScheme.primary,
-                        selectedTextColor = MaterialTheme.colorScheme.primary,
-                        selectedIndicatorColor = MaterialTheme.colorScheme.surface,
+                        selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                        selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                        selectedIndicatorColor = MaterialTheme.colorScheme.primary,
                         unselectedIconColor = MaterialTheme.colorScheme.secondary,
                         unselectedTextColor = MaterialTheme.colorScheme.secondary,
                         disabledIconColor = MaterialTheme.colorScheme.onSurfaceVariant,

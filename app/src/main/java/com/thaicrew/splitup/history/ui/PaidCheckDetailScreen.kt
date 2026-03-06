@@ -228,13 +228,13 @@ private fun ExpandableFriendTotalCard(
                     Text(
                         text = if (totalInCents == 0L) "Nada a pagar" else "Paga a sua parte",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.secondary
                     )
                 }
                 Text(
                     text = "R$ $totalFormatted",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.secondary,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -275,7 +275,7 @@ private fun ExpandableFriendTotalCard(
                                 text = "R$ $amountFormatted",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
+                                color = MaterialTheme.colorScheme.secondary
                             )
                         }
                     }

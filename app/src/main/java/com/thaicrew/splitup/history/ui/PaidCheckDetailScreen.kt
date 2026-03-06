@@ -160,7 +160,7 @@ fun PaidCheckDetailScreen(
                 )
 
                 // 3. Listas
-                LazyColumn(contentPadding = PaddingValues(bottom = 150.dp)) {
+                LazyColumn(contentPadding = PaddingValues(bottom = 16.dp)) {
                     when (uiState.viewMode) {
                         CheckViewMode.ByItem -> {
                             items(uiState.itemsWithSharers) { itemWithSharers ->
@@ -170,7 +170,7 @@ fun PaidCheckDetailScreen(
                                         isExpanded = uiState.expandedItemId == itemWithSharers.item.id,
                                         isEditing = false, // TRAVA VISUAL: Nunca entra em modo edição
                                         editingName = "", editingQuantity = 0, editingValue = "", editingSharers = emptySet(),
-                                        allParticipants = emptyList(),
+                                        allParticipants = uiState.participants,
                                         onClickExpand = { viewModel.onExpandItem(itemWithSharers.item.id) },
                                         onStartEdit = {}, onCancelEdit = {}, onNameChange = {}, onQuantityChange = {}, onValueChange = {}, onToggleFriend = {}, onSaveClick = {}, onDeleteClick = {}
                                     )

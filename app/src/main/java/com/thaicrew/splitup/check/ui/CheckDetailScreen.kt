@@ -152,7 +152,7 @@ fun CheckDetailScreen(
                         onAddClicked = { viewModel.onAddFriendsClicked() },
                         onRemoveParticipant = { id -> viewModel.onRemoveParticipant(id) }
                     )
-                    Divider()
+                    HorizontalDivider()
                 }
 
                 // --- SEÇÃO 2: Adicionar Item (Formulário) ---
@@ -229,32 +229,42 @@ fun CheckDetailScreen(
                         }
                     }
                     CheckViewMode.ByItem -> {
-                        items(uiState.itemsWithSharers) { itemWithSharers ->
-                            val isExpanded = uiState.expandedItemId == itemWithSharers.item.id
-                            val isEditing = isExpanded && uiState.isEditing
-
-                            Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-                                ExpandableItemCard(
-                                    itemWithSharers = itemWithSharers,
-                                    isExpanded = isExpanded,
-                                    isEditing = isEditing,
-                                    editingName = uiState.editingName,
-                                    editingQuantity = uiState.editingQuantity,
-                                    editingValue = uiState.editingValue,
-                                    editingSharers = uiState.editingSharers,
-                                    allParticipants = uiState.participants,
-                                    // Eventos
-                                    onClickExpand = { viewModel.onExpandItem(itemWithSharers.item.id) },
-                                    onStartEdit = { viewModel.onStartEditItem(itemWithSharers) },
-                                    onCancelEdit = { viewModel.onCancelEdit() },
-
-                                    onNameChange = { viewModel.onEditNameChange(it) },
-                                    onQuantityChange = { viewModel.onEditQuantityChange(it) },
-                                    onValueChange = { viewModel.onEditValueChange(it) },
-                                    onToggleFriend = { viewModel.onEditToggleFriend(it) },
-                                    onSaveClick = { viewModel.onSaveEditClicked() },
-                                    onDeleteClick = { viewModel.onDeleteEditClicked() }
+                        if (uiState.itemsWithSharers.isEmpty()) {
+                            item {
+                                Text(
+                                    "Adicione itens para ver a divisão.",
+                                    modifier = Modifier.padding(16.dp),
+                                    style = MaterialTheme.typography.bodyMedium
                                 )
+                            }
+                        } else {
+                            items(uiState.itemsWithSharers) { itemWithSharers ->
+                                val isExpanded = uiState.expandedItemId == itemWithSharers.item.id
+                                val isEditing = isExpanded && uiState.isEditing
+
+                                Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+                                    ExpandableItemCard(
+                                        itemWithSharers = itemWithSharers,
+                                        isExpanded = isExpanded,
+                                        isEditing = isEditing,
+                                        editingName = uiState.editingName,
+                                        editingQuantity = uiState.editingQuantity,
+                                        editingValue = uiState.editingValue,
+                                        editingSharers = uiState.editingSharers,
+                                        allParticipants = uiState.participants,
+                                        // Eventos
+                                        onClickExpand = { viewModel.onExpandItem(itemWithSharers.item.id) },
+                                        onStartEdit = { viewModel.onStartEditItem(itemWithSharers) },
+                                        onCancelEdit = { viewModel.onCancelEdit() },
+
+                                        onNameChange = { viewModel.onEditNameChange(it) },
+                                        onQuantityChange = { viewModel.onEditQuantityChange(it) },
+                                        onValueChange = { viewModel.onEditValueChange(it) },
+                                        onToggleFriend = { viewModel.onEditToggleFriend(it) },
+                                        onSaveClick = { viewModel.onSaveEditClicked() },
+                                        onDeleteClick = { viewModel.onDeleteEditClicked() }
+                                    )
+                                }
                             }
                         }
                     }

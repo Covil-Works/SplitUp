@@ -7,21 +7,33 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemColors
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,6 +50,7 @@ import com.thaicrew.splitup.check.ui.CheckViewModel
 import com.thaicrew.splitup.friend.ui.FriendViewModel
 import com.thaicrew.splitup.ui.theme.SplitUpTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -50,25 +63,78 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val navController = rememberNavController()
+            val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+            val scope = rememberCoroutineScope()
+
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentRoute = navBackStackEntry?.destination?.route
+
+            val mainScreenRoutes = setOf(
+                Screen.Checks.route,
+                Screen.Friends.route,
+                Screen.History.route
+            )
+            val showTopBar = currentRoute in mainScreenRoutes
+
             SplitUpTheme {
-                Scaffold(
-                    bottomBar = {
-                        AppBottomNavigation(navController)
+                ModalNavigationDrawer(
+                    drawerState = drawerState,
+                    drawerContent = {
+                        ModalDrawerSheet { }
                     }
-                ) { innerPadding ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(top = innerPadding.calculateTopPadding())
-                    ) {
-                        AppNavHost(
-                            navController = navController,
-                            friendViewModel = friendViewModel,
-                            checkViewModel = checkViewModel
-                        )
+                ) {
+                    Scaffold(
+                        topBar = {
+                            if (showTopBar) {
+                                MainTopBar(onMenuClick = { scope.launch { drawerState.open() } })
+                            }
+                        },
+                        bottomBar = {
+                            AppBottomNavigation(navController)
+                        }
+                    ) { innerPadding ->
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(top = innerPadding.calculateTopPadding())
+                        ) {
+                            AppNavHost(
+                                navController = navController,
+                                friendViewModel = friendViewModel,
+                                checkViewModel = checkViewModel
+                            )
+                        }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun MainTopBar(onMenuClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp)
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // LEFT: Logo placeholder (will be replaced with the app logo)
+        Box(modifier = Modifier.size(48.dp))
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        // RIGHT: Menu icon (three horizontal lines)
+        IconButton(
+            onClick = onMenuClick,
+            modifier = Modifier.padding(end = 8.dp, top = 20.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Menu,
+                contentDescription = "Menu"
+            )
         }
     }
 }

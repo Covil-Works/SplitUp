@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import com.thaicrew.splitup.ui.theme.SurfaceBlueGrey
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,7 +92,7 @@ fun PaidCheckDetailScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp)
-                        .background(MaterialTheme.colorScheme.surfaceBright)
+                        .background(SurfaceBlueGrey)
                         .padding(horizontal = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -161,7 +162,7 @@ fun PaidCheckDetailScreen(
                 val totalFormatted = String.format("%.2f", uiState.checkTotal / 100.0)
                 Card(
                     modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp).fillMaxWidth(),
@@ -228,7 +229,7 @@ private fun ExpandableFriendTotalCard(
     val totalFormatted = String.format("%.2f", totalInCents / 100.0)
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(containerColor = SurfaceBlueGrey),
         elevation = CardDefaults.cardElevation(defaultElevation = if (isExpanded) 4.dp else 2.dp),
         modifier = Modifier
             .fillMaxWidth()
@@ -268,7 +269,7 @@ private fun ExpandableFriendTotalCard(
                     Text(
                         text = "Nenhum item para mostrar.",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 } else {
                     owedItems.forEach { owed ->
@@ -287,7 +288,7 @@ private fun ExpandableFriendTotalCard(
                                 Text(
                                     text = "${owed.quantity}x × R$ $unitFormatted",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                             Text(

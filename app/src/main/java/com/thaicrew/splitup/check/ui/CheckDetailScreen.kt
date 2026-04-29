@@ -35,6 +35,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import com.thaicrew.splitup.check.domain.ItemWithSharers
 import com.thaicrew.splitup.friend.domain.Friend
+import com.thaicrew.splitup.ui.theme.SurfaceBlueGrey
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Brush
 
@@ -98,7 +99,7 @@ fun CheckDetailScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(70.dp)
-                        .background(MaterialTheme.colorScheme.surfaceBright)
+                        .background(SurfaceBlueGrey)
                         .padding(horizontal = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -313,7 +314,7 @@ fun CheckDetailScreen(
                                 Text(
                                     text = "Total",
                                     style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
                                     text = "R$ $formattedTotal",
@@ -324,7 +325,7 @@ fun CheckDetailScreen(
                                 Text(
                                     text = "ou R$ $formattedTip com 10%",
                                     style = MaterialTheme.typography.bodySmall, // Texto menor, estilo "parcelado"
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
 
@@ -440,7 +441,7 @@ fun ParticipantsSection(
                 Text(
                     text = "Adicione os amigos que participam dessa comanda.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Button(onClick = onAddClicked) {
@@ -724,7 +725,7 @@ fun CheckViewModeSelector(
         ) {
             Text(
                 text = "Por Item",
-                color = if (currentMode == CheckViewMode.ByItem) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                color = if (currentMode == CheckViewMode.ByItem) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.labelLarge
             )
         }
@@ -742,7 +743,7 @@ fun CheckViewModeSelector(
         ) {
             Text(
                 text = "Por Pessoa",
-                color = if (currentMode == CheckViewMode.ByFriend) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                color = if (currentMode == CheckViewMode.ByFriend) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.labelLarge
             )
         }
@@ -769,7 +770,7 @@ fun FriendTotalsList(
 
                 Card(
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
+                        containerColor = SurfaceBlueGrey,
                     ),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                     modifier = Modifier.fillMaxWidth()
@@ -789,7 +790,7 @@ fun FriendTotalsList(
                             Text(
                                 text = if (totalInCents == 0L) "Nada a pagar" else "Paga a sua parte",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
 
@@ -815,7 +816,7 @@ fun FriendTotalCard(
     val totalFormatted = String.format("%.2f", totalInCents / 100.0)
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(containerColor = SurfaceBlueGrey),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = Modifier
             .fillMaxWidth()
@@ -833,7 +834,7 @@ fun FriendTotalCard(
                 Text(
                     text = if (totalInCents == 0L) "Nada a pagar" else "Paga a sua parte",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
             Text(
@@ -909,7 +910,7 @@ fun ExpandableItemCard(
             .clickable { if (!isEditing) onClickExpand() },
         elevation = CardDefaults.cardElevation(defaultElevation = if (isExpanded) 4.dp else 1.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = SurfaceBlueGrey
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -1010,7 +1011,7 @@ fun ExpandableItemCard(
                         Text(
                             text = "${itemWithSharers.item.quantity}x • R$ ${String.format("%.2f", unitValueInCents / 100.0)}",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                     // Se expandido, mostra botão de Editar. Se não, mostra valor total.
@@ -1110,7 +1111,7 @@ private fun ExpandableFriendTotalCard(
     val totalFormatted = String.format("%.2f", totalInCents / 100.0)
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(containerColor = SurfaceBlueGrey),
         elevation = CardDefaults.cardElevation(defaultElevation = if (isExpanded) 4.dp else 2.dp),
         modifier = Modifier
             .fillMaxWidth()
@@ -1150,7 +1151,7 @@ private fun ExpandableFriendTotalCard(
                     Text(
                         text = "Nenhum item para mostrar.",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 } else {
                     owedItems.forEach { owed ->
@@ -1169,7 +1170,7 @@ private fun ExpandableFriendTotalCard(
                                 Text(
                                     text = "${owed.quantity}x × R$ $unitFormatted",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                             Text(

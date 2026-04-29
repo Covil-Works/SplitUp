@@ -246,8 +246,8 @@ private fun SwipeableCheckItem(
         state = dismissState,
         backgroundContent = {
             val color = when (dismissState.targetValue) {
-                SwipeToDismissBoxValue.EndToStart -> Color.Red // Excluir
-                SwipeToDismissBoxValue.StartToEnd -> Color(0xFF6200EE) // Fechar (Roxo) - Ajuste conforme seu Theme
+                SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.error
+                SwipeToDismissBoxValue.StartToEnd -> MaterialTheme.colorScheme.primary
                 else -> Color.Transparent
             }
 
@@ -263,6 +263,12 @@ private fun SwipeableCheckItem(
                 else -> null
             }
 
+            val iconTint = when (dismissState.targetValue) {
+                SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.onError
+                SwipeToDismissBoxValue.StartToEnd -> MaterialTheme.colorScheme.onPrimary
+                else -> MaterialTheme.colorScheme.onSurface
+            }
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -274,7 +280,7 @@ private fun SwipeableCheckItem(
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = Color.White
+                        tint = iconTint
                     )
                 }
             }

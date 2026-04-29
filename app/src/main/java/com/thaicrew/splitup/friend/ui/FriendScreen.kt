@@ -223,7 +223,10 @@ private fun AddFriendDialog(
         },
         dismissButton = {
             TextButton(
-                onClick = onDismiss
+                onClick = onDismiss,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
             ){
                 Text("Cancelar")
             }
@@ -326,7 +329,10 @@ private fun DeletionConfirmationDialog(
         text = { Text("Você tem certeza que deseja apagar $friendName? Esse amigo não poderá ser adicionado em novas comandas.") },
         dismissButton = {
             TextButton(
-                onClick = onDismiss
+                onClick = onDismiss,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
                 ){
                 Text("Cancelar")
             }
@@ -391,7 +397,10 @@ private fun EditFriendDialog(
         },
         dismissButton = {
             TextButton(
-                onClick = onDismiss
+                onClick = onDismiss,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
                 ) {
                 Text("Cancelar")
             }
@@ -452,7 +461,11 @@ private fun HardDeleteConfirmationDialog(
         text = { Text("Você tem certeza que deseja apagar $friendName? Esse amigo não poderá ser adicionado em novas comandas") },
         dismissButton = {
             TextButton(
-                onClick = onDismiss)
+                onClick = onDismiss,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
+            )
             {
                 Text("Cancelar")
             }

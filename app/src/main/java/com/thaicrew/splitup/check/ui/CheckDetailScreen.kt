@@ -314,7 +314,7 @@ fun CheckDetailScreen(
                                 Text(
                                     text = "Total",
                                     style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
                                     text = "R$ $formattedTotal",
@@ -325,7 +325,7 @@ fun CheckDetailScreen(
                                 Text(
                                     text = "ou R$ $formattedTip com 10%",
                                     style = MaterialTheme.typography.bodySmall, // Texto menor, estilo "parcelado"
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
 
@@ -441,7 +441,7 @@ fun ParticipantsSection(
                 Text(
                     text = "Adicione os amigos que participam dessa comanda.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Button(onClick = onAddClicked) {
@@ -515,7 +515,12 @@ fun EditCheckNameDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            TextButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
+            ) { Text("Cancelar") }
         }
     )
 }
@@ -790,7 +795,7 @@ fun FriendTotalsList(
                             Text(
                                 text = if (totalInCents == 0L) "Nada a pagar" else "Paga a sua parte",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
 
@@ -834,7 +839,7 @@ fun FriendTotalCard(
                 Text(
                     text = if (totalInCents == 0L) "Nada a pagar" else "Paga a sua parte",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Text(
@@ -985,7 +990,11 @@ fun ExpandableItemCard(
                     }
                     Spacer(modifier = Modifier.weight(1f))
 
-                    TextButton(onClick = onCancelEdit
+                    TextButton(
+                        onClick = onCancelEdit,
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        )
                     ) { Text("Cancelar") }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(onClick = onSaveClick) { Text("Salvar") }
@@ -1011,7 +1020,7 @@ fun ExpandableItemCard(
                         Text(
                             text = "${itemWithSharers.item.quantity}x • R$ ${String.format("%.2f", unitValueInCents / 100.0)}",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     // Se expandido, mostra botão de Editar. Se não, mostra valor total.
@@ -1093,7 +1102,12 @@ fun CloseCheckConfirmationDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
+            ) {
                 Text("Cancelar")
             }
         }
@@ -1151,7 +1165,7 @@ private fun ExpandableFriendTotalCard(
                     Text(
                         text = "Nenhum item para mostrar.",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
                     owedItems.forEach { owed ->
@@ -1170,7 +1184,7 @@ private fun ExpandableFriendTotalCard(
                                 Text(
                                     text = "${owed.quantity}x × R$ $unitFormatted",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                             Text(

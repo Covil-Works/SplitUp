@@ -25,7 +25,7 @@ private val DarkColorScheme = darkColorScheme(
     surface = SurfaceCard,
     onSurface = LightGreyText,
     surfaceVariant = SurfaceBlueGrey,
-    onSurfaceVariant = MediumContrastText,
+    onSurfaceVariant = PurpleLight,
     outline = SoftOutline,
     outlineVariant = SoftOutline.copy(alpha = 0.7f),
 

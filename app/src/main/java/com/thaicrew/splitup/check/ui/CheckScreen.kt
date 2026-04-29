@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
@@ -96,10 +97,15 @@ fun CheckScreen(
                 }) { Text("Criar") }
             },
             dismissButton = {
-                TextButton(onClick = {
-                    showCreateDialog = false
-                    checkName = ""
-                }) { Text("Cancelar") }
+                TextButton(
+                    onClick = {
+                        showCreateDialog = false
+                        checkName = ""
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onSurface
+                    )
+                ) { Text("Cancelar") }
             }
         )
     }
@@ -135,7 +141,12 @@ fun CheckScreen(
                 ) { Text(confirmText) }
             },
             dismissButton = {
-                TextButton(onClick = { viewModel.onDismissDialog() }) { Text("Cancelar") }
+                TextButton(
+                    onClick = { viewModel.onDismissDialog() },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onSurface
+                    )
+                ) { Text("Cancelar") }
             }
         )
     }

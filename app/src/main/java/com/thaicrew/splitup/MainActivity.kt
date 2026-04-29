@@ -49,6 +49,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.thaicrew.splitup.ui.theme.MediumContrastText
 import com.thaicrew.splitup.check.ui.CheckViewModel
 import com.thaicrew.splitup.friend.ui.FriendViewModel
 import com.thaicrew.splitup.ui.theme.SplitUpTheme
@@ -214,10 +215,10 @@ fun AppBottomNavigation(navController: NavHostController) {
                         selectedIconColor = MaterialTheme.colorScheme.onPrimary,
                         selectedTextColor = MaterialTheme.colorScheme.onPrimary,
                         indicatorColor = MaterialTheme.colorScheme.primary,
-                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        disabledIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        disabledTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedIconColor = MediumContrastText,
+                        unselectedTextColor = MediumContrastText,
+                        disabledIconColor = MediumContrastText,
+                        disabledTextColor = MediumContrastText,
                     ),
                     icon = { Icon(screen.icon, contentDescription = null) },
                     label = { Text(screen.label) },

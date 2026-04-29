@@ -70,7 +70,14 @@ fun PaidCheckDetailScreen(
             title = { Text("Apagar Comanda") },
             text = { Text("Essa ação é irreversível.") },
             confirmButton = { Button(onClick = { viewModel.onDeleteConfirmed() }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) { Text("Apagar") } },
-            dismissButton = { TextButton(onClick = { viewModel.onDismissDialogs() }) { Text("Cancelar") } }
+            dismissButton = {
+                TextButton(
+                    onClick = { viewModel.onDismissDialogs() },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onSurface
+                    )
+                ) { Text("Cancelar") }
+            }
         )
     }
 
@@ -80,7 +87,14 @@ fun PaidCheckDetailScreen(
             title = { Text("Reabrir Comanda") },
             text = { Text("A comanda voltará para a lista de abertas.") },
             confirmButton = { Button(onClick = { viewModel.onReopenConfirmed() }) { Text("Reabrir") } },
-            dismissButton = { TextButton(onClick = { viewModel.onDismissDialogs() }) { Text("Cancelar") } }
+            dismissButton = {
+                TextButton(
+                    onClick = { viewModel.onDismissDialogs() },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onSurface
+                    )
+                ) { Text("Cancelar") }
+            }
         )
     }
 
@@ -269,7 +283,7 @@ private fun ExpandableFriendTotalCard(
                     Text(
                         text = "Nenhum item para mostrar.",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
                     owedItems.forEach { owed ->
@@ -288,7 +302,7 @@ private fun ExpandableFriendTotalCard(
                                 Text(
                                     text = "${owed.quantity}x × R$ $unitFormatted",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                             Text(

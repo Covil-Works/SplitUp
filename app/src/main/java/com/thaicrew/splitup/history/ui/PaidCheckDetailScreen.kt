@@ -92,7 +92,7 @@ fun PaidCheckDetailScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp)
-                        .background(SurfaceBlueGrey)
+                        .background(MaterialTheme.colorScheme.primary)
                         .padding(horizontal = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {

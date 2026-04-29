@@ -99,7 +99,7 @@ fun CheckDetailScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(70.dp)
-                        .background(SurfaceBlueGrey)
+                        .background(MaterialTheme.colorScheme.primary)
                         .padding(horizontal = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {

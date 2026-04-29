@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
@@ -41,6 +42,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -119,12 +121,17 @@ fun MainTopBar(onMenuClick: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(70.dp)
-                .background(MaterialTheme.colorScheme.surfaceBright)
+                .background(MaterialTheme.colorScheme.primary)
                 .padding(horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // LEFT: Logo placeholder (will be replaced with the app logo)
-            Box(modifier = Modifier.size(48.dp))
+            Image(
+                painter = painterResource(id = R.drawable.icone_topbar),
+                contentDescription = "Logo do app",
+                modifier = Modifier
+                    .padding(start = 16.dp, top = 20.dp)
+                    .size(30.dp)
+            )
 
             Spacer(modifier = Modifier.weight(1f))
 

@@ -134,6 +134,12 @@ fun MainTopBar(onMenuClick: () -> Unit) {
                     .padding(start = 16.dp, top = 30.dp)
                     .size(30.dp)
             )
+            Text(
+                text = "SplitUp",
+                color = MaterialTheme.colorScheme.onPrimary,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(start = 8.dp, top = 30.dp)
+            )
 
             Spacer(modifier = Modifier.weight(1f))
 

@@ -1,5 +1,11 @@
 package com.thaicrew.splitup.friend.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,15 +27,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -48,6 +55,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.thaicrew.splitup.friend.domain.Friend
 import timber.log.Timber
@@ -248,6 +257,8 @@ private fun FriendList(
     onDeleteFriend: (Friend) -> Unit,
     onEditFriend: (Friend) -> Unit
 ) {
+    var expandedFriendId by remember { mutableStateOf<Int?>(null) }
+
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 205.dp),
@@ -283,6 +294,10 @@ private fun FriendList(
             items(friends, key = { friend -> friend.id }) { friend ->
                 FriendListItem(
                     friend = friend,
+                    isExpanded = expandedFriendId == friend.id,
+                    onCardClick = {
+                        expandedFriendId = if (expandedFriendId == friend.id) null else friend.id
+                    },
                     onDeleteClick = onDeleteFriend,
                     onEditClick = onEditFriend
                 )
@@ -296,36 +311,76 @@ private fun FriendList(
 @Composable
 private fun FriendListItem(
     friend: Friend,
+    isExpanded: Boolean,
+    onCardClick: () -> Unit,
     onDeleteClick: (Friend) -> Unit,
     onEditClick: (Friend) -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth()
+    OutlinedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)),
+        onClick = onCardClick
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            Text(
-                text = friend.name,
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.weight(1f)
-            )
-            IconButton(onClick = { onEditClick(friend) }) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = friend.name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.weight(1f)
+                )
                 Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Editar Amigo",
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "Ações do amigo"
                 )
             }
-            IconButton(onClick = { onDeleteClick(friend) }) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Deletar Amigo",
-                    tint = MaterialTheme.colorScheme.error
-                )
+
+            AnimatedVisibility(
+                visible = isExpanded,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        modifier = Modifier.weight(1f),
+                        onClick = { onEditClick(friend) }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Editar amigo"
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text("Editar")
+                    }
+
+                    OutlinedButton(
+                        modifier = Modifier.weight(1f),
+                        onClick = { onDeleteClick(friend) }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Excluir amigo",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text(
+                            text = "Excluir",
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
             }
         }
     }

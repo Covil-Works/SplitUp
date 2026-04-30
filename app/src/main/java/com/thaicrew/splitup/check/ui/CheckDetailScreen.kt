@@ -366,7 +366,7 @@ fun ParticipantsSection(
         Text(
             text = "Amigos",
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.secondary
+            color = Color.LightGray
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -481,7 +481,7 @@ fun AddItemSection(
         Text(
             text = "Novo Item",
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.secondary
+            color = Color.LightGray
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -562,7 +562,7 @@ fun ItemParticipantsSection(
         Text(
             text = "Quem divide?",
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.secondary
+            color = Color.LightGray
         )
 
         Spacer(modifier = Modifier.height(8.dp))

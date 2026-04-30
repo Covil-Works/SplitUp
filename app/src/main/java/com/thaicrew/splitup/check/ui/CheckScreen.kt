@@ -56,6 +56,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.thaicrew.splitup.check.domain.Check
+import com.thaicrew.splitup.ui.theme.LightGreyText
 import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -349,7 +350,11 @@ private fun CheckListItem(check: Check, onClick: () -> Unit) {
                 .padding(16.dp)
                 .fillMaxWidth(),
         ) {
-            Text(text = check.name, style = MaterialTheme.typography.titleLarge)
+            Text(
+                text = check.name,
+                style = MaterialTheme.typography.bodyLarge,
+                color = LightGreyText
+            )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.DateRange,

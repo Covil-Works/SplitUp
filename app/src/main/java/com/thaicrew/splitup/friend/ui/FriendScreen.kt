@@ -64,6 +64,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.thaicrew.splitup.friend.domain.Friend
+import com.thaicrew.splitup.ui.theme.LightGreyText
 import timber.log.Timber
 
 /**
@@ -348,6 +349,7 @@ private fun FriendListItem(
                 Text(
                     text = friend.name,
                     style = MaterialTheme.typography.bodyLarge,
+                    color = LightGreyText,
                     modifier = Modifier.weight(1f)
                 )
                 Icon(

@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.thaicrew.splitup.check.domain.Check
+import com.thaicrew.splitup.ui.theme.LightGreyText
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -125,7 +126,11 @@ private fun HistoryListItem(check: Check, onClick: () -> Unit) {
                 .padding(16.dp)
                 .fillMaxWidth(),
         ) {
-            Text(text = check.name, style = MaterialTheme.typography.titleLarge)
+            Text(
+                text = check.name,
+                style = MaterialTheme.typography.bodyLarge,
+                color = LightGreyText
+            )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.CheckCircle,

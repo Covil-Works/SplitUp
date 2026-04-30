@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
@@ -50,6 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -110,6 +112,7 @@ class MainActivity : ComponentActivity() {
 
                                         CheckDetailTopBar(
                                             checkName = detailUiState.check?.name ?: "Carregando...",
+                                            onBackClick = { navController.navigateUp() },
                                             onEditNameClick = detailViewModel::onShowEditNameDialog
                                         )
                                     }
@@ -122,6 +125,7 @@ class MainActivity : ComponentActivity() {
 
                                         PaidCheckTopBar(
                                             checkName = paidUiState.check?.name ?: "Detalhes",
+                                            onBackClick = { navController.navigateUp() },
                                             isMenuExpanded = showPaidCheckMenu,
                                             onShareClick = paidDetailViewModel::onExportClicked,
                                             onMenuClick = { showPaidCheckMenu = true },
@@ -170,9 +174,9 @@ private fun MainListTopBar(onMenuClick: () -> Unit) {
                 .size(30.dp)
         )
         Text(
-            text = "Splitup",
+            text = "SplitUp",
             color = MaterialTheme.colorScheme.onPrimary,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.padding(start = 8.dp)
         )
         Spacer(modifier = Modifier.weight(1f))
@@ -192,13 +196,24 @@ private fun MainListTopBar(onMenuClick: () -> Unit) {
 @Composable
 private fun CheckDetailTopBar(
     checkName: String,
+    onBackClick: () -> Unit,
     onEditNameClick: () -> Unit
 ) {
     UniversalTopBar {
+        IconButton(
+            onClick = onBackClick,
+            modifier = Modifier.padding(start = 4.dp)
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Voltar",
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+        }
         Text(
             text = checkName,
             color = MaterialTheme.colorScheme.onPrimary,
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier
@@ -221,6 +236,7 @@ private fun CheckDetailTopBar(
 @Composable
 private fun PaidCheckTopBar(
     checkName: String,
+    onBackClick: () -> Unit,
     isMenuExpanded: Boolean,
     onShareClick: () -> Unit,
     onMenuClick: () -> Unit,
@@ -229,10 +245,20 @@ private fun PaidCheckTopBar(
     onDeleteClick: () -> Unit
 ) {
     UniversalTopBar {
+        IconButton(
+            onClick = onBackClick,
+            modifier = Modifier.padding(start = 4.dp)
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Voltar",
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+        }
         Text(
             text = checkName,
             color = MaterialTheme.colorScheme.onPrimary,
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier

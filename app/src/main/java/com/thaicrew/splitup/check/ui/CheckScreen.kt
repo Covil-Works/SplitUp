@@ -33,7 +33,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material3.AlertDialog
@@ -367,6 +366,7 @@ private fun SwipeableCheckItem(
                 totalInCents = totalInCents,
                 onCardClick = onClick,
                 onMoreClick = onMoreClick,
+                onCloseClick = { onSwipeAction(check, CheckViewModel.SwipeAction.CLOSE) },
                 onDeleteClick = { onSwipeAction(check, CheckViewModel.SwipeAction.DELETE) }
             )
         }
@@ -381,6 +381,7 @@ private fun CheckListItem(
     totalInCents: Long,
     onCardClick: () -> Unit,
     onMoreClick: () -> Unit,
+    onCloseClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
@@ -395,6 +396,7 @@ private fun CheckListItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable(onClick = onCardClick)
             .animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
     ) {
         Column(
@@ -421,8 +423,7 @@ private fun CheckListItem(
             }
 
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.clickable(onClick = onCardClick)
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     imageVector = Icons.Default.DateRange,
@@ -479,14 +480,14 @@ private fun CheckListItem(
                     ) {
                         OutlinedButton(
                             modifier = Modifier.weight(1f),
-                            onClick = onCardClick
+                            onClick = onCloseClick
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = "Editar comanda"
+                                imageVector = Icons.Default.Check,
+                                contentDescription = "Fechar comanda"
                             )
                             Spacer(modifier = Modifier.size(8.dp))
-                            Text("Editar")
+                            Text("Fechar")
                         }
 
                         OutlinedButton(

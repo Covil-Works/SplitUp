@@ -380,16 +380,23 @@ private fun FriendListItem(
                         .padding(top = 12.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    OutlinedButton(
+                    Button(
                         modifier = Modifier.weight(1f),
-                        onClick = { onEditClick(friend) }
+                        onClick = { onEditClick(friend) },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
                     ) {
                         Icon(
                             imageVector = Icons.Default.Edit,
-                            contentDescription = "Editar amigo"
+                            contentDescription = "Editar amigo",
+                            tint = MaterialTheme.colorScheme.secondary
                         )
                         Spacer(modifier = Modifier.size(8.dp))
-                        Text("Editar")
+                        Text(
+                            text = "Editar",
+                            color = MaterialTheme.colorScheme.secondary
+                        )
                     }
 
                     OutlinedButton(

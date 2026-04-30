@@ -170,7 +170,7 @@ private fun MainListTopBar(onMenuClick: () -> Unit) {
             painter = painterResource(id = R.drawable.icone_topbar),
             contentDescription = "Logo do app",
             modifier = Modifier
-                .padding(start = 8.dp)
+                .padding(start = 16.dp)
                 .size(30.dp)
         )
         Text(

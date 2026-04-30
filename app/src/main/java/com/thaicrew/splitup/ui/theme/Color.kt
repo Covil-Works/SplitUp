@@ -11,7 +11,7 @@ val SurfaceCard = Color(0xFF2B2E44)
 val SurfaceCardElevated = Color(0xFF303654)
 val BarBackground = Color(0xFF303350)
 
-val LightGreyText = Color(0xFFFAFBFF)
+val LightGreyText = Color(0xFFFCFEFF)
 val MediumContrastText = Color(0xFFB9C1E2)
 val SoftOutline = Color(0xFF3B4160)
 val DestructiveAccent = Color(0xFFE67282)

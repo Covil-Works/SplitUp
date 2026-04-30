@@ -158,7 +158,7 @@ fun CheckScreen(
             FloatingActionButton(
                 onClick = { showCreateDialog = true },
                 modifier = Modifier
-                    .padding(bottom = 110.dp)
+                    .padding(bottom = 10.dp)
                     .size(72.dp),
                 shape = CircleShape
             ) {

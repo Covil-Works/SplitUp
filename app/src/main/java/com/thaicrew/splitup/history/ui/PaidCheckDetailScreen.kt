@@ -5,15 +5,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -23,12 +21,8 @@ import com.thaicrew.splitup.check.ui.ExpandableItemCard
 import com.thaicrew.splitup.check.ui.FriendOwedItem
 import com.thaicrew.splitup.friend.domain.Friend
 import android.content.Intent
-import androidx.compose.foundation.background
 import androidx.core.content.FileProvider
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import com.thaicrew.splitup.ui.theme.SurfaceBlueGrey
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,7 +32,6 @@ fun PaidCheckDetailScreen(
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    var showMenu by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
@@ -100,70 +93,7 @@ fun PaidCheckDetailScreen(
     }
 
     Scaffold(
-        topBar = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                // Barra solida
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .background(MaterialTheme.colorScheme.primary)
-                        .padding(horizontal = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                // Botao de Voltar (Esquerda)
-                IconButton(onClick = onNavigateBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
-                }
-                Text(
-                    text = uiState.check?.name ?: "Detalhes",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
-                )
-
-
-                // Botoes de Acao (Direita)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { viewModel.onExportClicked() }) {
-                        Icon(Icons.Default.Share, contentDescription = "Exportar PDF")
-                    }
-
-                    Box {
-                        IconButton(onClick = { showMenu = true }) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "Opcoes")
-                        }
-                        DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
-                            DropdownMenuItem(
-                                text = { Text("Reabrir Comanda") },
-                                onClick = { showMenu = false; viewModel.onReopenClicked() }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Apagar Comanda", color = MaterialTheme.colorScheme.error) },
-                                onClick = { showMenu = false; viewModel.onDeleteClicked() }
-                            )
-                        }
-                    }
-                }
-            }
-                // Fade/sombra abaixo da barra
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(16.dp)
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.background.copy(alpha = 0.9f),
-                                    Color.Transparent
-                                )
-                            )
-                        )
-                )
-            }
-        }
+        contentWindowInsets = WindowInsets(0.dp)
     ) { paddingValues ->
         if (uiState.isLoading) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }

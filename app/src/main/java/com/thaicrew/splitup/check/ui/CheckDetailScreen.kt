@@ -6,8 +6,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,6 +21,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ModalBottomSheet
@@ -31,14 +30,12 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import com.thaicrew.splitup.check.domain.ItemWithSharers
 import com.thaicrew.splitup.friend.domain.Friend
 import com.thaicrew.splitup.ui.theme.SurfaceBlueGrey
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.graphics.Brush
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,7 +45,6 @@ fun CheckDetailScreen(
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    var showEditDialog by remember { mutableStateOf(false) }
 
     if (uiState.showCloseCheckDialog) {
         CloseCheckConfirmationDialog(
@@ -76,11 +72,14 @@ fun CheckDetailScreen(
         }
     }
 
-    if (showEditDialog && uiState.check != null) {
+    if (uiState.showEditNameDialog && uiState.check != null) {
         EditCheckNameDialog(
             currentName = uiState.check!!.name,
-            onConfirm = { newName -> viewModel.onNameChanged(newName); showEditDialog = false },
-            onDismiss = { showEditDialog = false }
+            onConfirm = { newName ->
+                viewModel.onNameChanged(newName)
+                viewModel.onDismissEditNameDialog()
+            },
+            onDismiss = { viewModel.onDismissEditNameDialog() }
         )
     }
 
@@ -93,54 +92,7 @@ fun CheckDetailScreen(
     }
 
     Scaffold(
-        topBar = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                // Barra solida
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(70.dp)
-                        .background(MaterialTheme.colorScheme.primary)
-                        .padding(horizontal = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                // Botao de Voltar (Esquerda)
-                IconButton(onClick = onNavigateBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
-                }
-                Text(
-                    text = uiState.check?.name ?: "Carregando...",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable { showEditDialog = true }
-                )
-                IconButton(onClick = { showEditDialog = true }) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Editar comanda"
-                    )
-                }
-            }
-                // Fade/sombra abaixo da barra
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(16.dp)
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.background.copy(alpha = 0.9f),
-                                    Color.Transparent
-                                )
-                            )
-                        )
-                )
-            }
-        }
+        contentWindowInsets = WindowInsets(0.dp)
     ) { paddingValues ->
         if (uiState.isLoading) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }

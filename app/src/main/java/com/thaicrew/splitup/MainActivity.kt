@@ -8,6 +8,9 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,9 +19,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,28 +36,34 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.thaicrew.splitup.ui.theme.MediumContrastText
+import com.thaicrew.splitup.check.ui.CheckDetailViewModel
 import com.thaicrew.splitup.check.ui.CheckViewModel
 import com.thaicrew.splitup.friend.ui.FriendViewModel
+import com.thaicrew.splitup.history.ui.PaidCheckDetailViewModel
+import com.thaicrew.splitup.ui.theme.MediumContrastText
 import com.thaicrew.splitup.ui.theme.SplitUpTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -72,30 +87,59 @@ class MainActivity : ComponentActivity() {
 
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
-
-            val mainScreenRoutes = setOf(
-                Screen.Checks.route,
-                Screen.Friends.route,
-                Screen.History.route
-            )
-            val showTopBar = currentRoute in mainScreenRoutes
+            var showPaidCheckMenu by rememberSaveable(currentRoute) { mutableStateOf(false) }
 
             SplitUpTheme {
                 ModalNavigationDrawer(
                     drawerState = drawerState,
-                    drawerContent = {
-                        ModalDrawerSheet { }
-                    }
+                    drawerContent = { ModalDrawerSheet { } }
                 ) {
                     Scaffold(
                         topBar = {
-                            if (showTopBar) {
-                                MainTopBar(onMenuClick = { scope.launch { drawerState.open() } })
+                            when (currentRoute) {
+                                Screen.Friends.route,
+                                Screen.Checks.route,
+                                Screen.History.route -> {
+                                    MainListTopBar(onMenuClick = { scope.launch { drawerState.open() } })
+                                }
+
+                                Screen.CheckDetail.route -> {
+                                    navBackStackEntry?.let { entry ->
+                                        val detailViewModel: CheckDetailViewModel = hiltViewModel(entry)
+                                        val detailUiState by detailViewModel.uiState.collectAsStateWithLifecycle()
+
+                                        CheckDetailTopBar(
+                                            checkName = detailUiState.check?.name ?: "Carregando...",
+                                            onEditNameClick = detailViewModel::onShowEditNameDialog
+                                        )
+                                    }
+                                }
+
+                                Screen.PaidCheckDetail.route -> {
+                                    navBackStackEntry?.let { entry ->
+                                        val paidDetailViewModel: PaidCheckDetailViewModel = hiltViewModel(entry)
+                                        val paidUiState by paidDetailViewModel.uiState.collectAsStateWithLifecycle()
+
+                                        PaidCheckTopBar(
+                                            checkName = paidUiState.check?.name ?: "Detalhes",
+                                            isMenuExpanded = showPaidCheckMenu,
+                                            onShareClick = paidDetailViewModel::onExportClicked,
+                                            onMenuClick = { showPaidCheckMenu = true },
+                                            onMenuDismiss = { showPaidCheckMenu = false },
+                                            onReopenClick = {
+                                                showPaidCheckMenu = false
+                                                paidDetailViewModel.onReopenClicked()
+                                            },
+                                            onDeleteClick = {
+                                                showPaidCheckMenu = false
+                                                paidDetailViewModel.onDeleteClicked()
+                                            }
+                                        )
+                                    }
+                                }
                             }
                         },
-                        bottomBar = {
-                            AppBottomNavigation(navController)
-                        }
+                        bottomBar = { AppBottomNavigation(navController) }
                     ) { innerPadding ->
                         Box(
                             modifier = Modifier
@@ -116,45 +160,138 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainTopBar(onMenuClick: () -> Unit) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        // Barra solida
-        Row(
+private fun MainListTopBar(onMenuClick: () -> Unit) {
+    UniversalTopBar {
+        Image(
+            painter = painterResource(id = R.drawable.icone_topbar),
+            contentDescription = "Logo do app",
             modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = MainTopBarMinHeight)
-                .background(MaterialTheme.colorScheme.primary)
-                .padding(horizontal = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(start = 8.dp)
+                .size(30.dp)
+        )
+        Text(
+            text = "Splitup",
+            color = MaterialTheme.colorScheme.onPrimary,
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(start = 8.dp)
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        IconButton(
+            onClick = onMenuClick,
+            modifier = Modifier.padding(end = 4.dp)
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.icone_topbar),
-                contentDescription = "Logo do app",
-                modifier = Modifier
-                    .padding(start = 16.dp, top = 30.dp)
-                    .size(30.dp)
+            Icon(
+                imageVector = Icons.Default.Menu,
+                contentDescription = "Menu",
+                tint = MaterialTheme.colorScheme.onPrimary
             )
-            Text(
-                text = "SplitUp",
-                color = MaterialTheme.colorScheme.onPrimary,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(start = 8.dp, top = 30.dp)
+        }
+    }
+}
+
+@Composable
+private fun CheckDetailTopBar(
+    checkName: String,
+    onEditNameClick: () -> Unit
+) {
+    UniversalTopBar {
+        Text(
+            text = checkName,
+            color = MaterialTheme.colorScheme.onPrimary,
+            style = MaterialTheme.typography.titleLarge,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 16.dp)
+        )
+        IconButton(
+            onClick = onEditNameClick,
+            modifier = Modifier.padding(end = 4.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Edit,
+                contentDescription = "Editar nome da comanda",
+                tint = MaterialTheme.colorScheme.onPrimary
             )
+        }
+    }
+}
 
-            Spacer(modifier = Modifier.weight(1f))
+@Composable
+private fun PaidCheckTopBar(
+    checkName: String,
+    isMenuExpanded: Boolean,
+    onShareClick: () -> Unit,
+    onMenuClick: () -> Unit,
+    onMenuDismiss: () -> Unit,
+    onReopenClick: () -> Unit,
+    onDeleteClick: () -> Unit
+) {
+    UniversalTopBar {
+        Text(
+            text = checkName,
+            color = MaterialTheme.colorScheme.onPrimary,
+            style = MaterialTheme.typography.titleLarge,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 16.dp)
+        )
 
-            // RIGHT: Menu icon (three horizontal lines)
+        IconButton(onClick = onShareClick) {
+            Icon(
+                imageVector = Icons.Default.Share,
+                contentDescription = "Compartilhar comanda",
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+
+        Box {
             IconButton(
                 onClick = onMenuClick,
-                modifier = Modifier.padding(end = 8.dp, top = 30.dp)
+                modifier = Modifier.padding(end = 4.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.Menu,
-                    contentDescription = "Menu"
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "Mais opcoes",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+
+            DropdownMenu(
+                expanded = isMenuExpanded,
+                onDismissRequest = onMenuDismiss
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Reabrir Comanda") },
+                    onClick = onReopenClick
+                )
+                DropdownMenuItem(
+                    text = { Text("Apagar Comanda", color = MaterialTheme.colorScheme.error) },
+                    onClick = onDeleteClick
                 )
             }
         }
-        // Fade/sombra abaixo da barra
+    }
+}
+
+@Composable
+private fun UniversalTopBar(
+    content: @Composable RowScope.() -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .heightIn(min = MainTopBarMinHeight)
+                .background(MaterialTheme.colorScheme.primary),
+            verticalAlignment = Alignment.CenterVertically,
+            content = content
+        )
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()

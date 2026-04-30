@@ -236,6 +236,14 @@ class CheckDetailViewModel @Inject constructor(
         _uiState.update { it.copy(infoDialogMessage = null) }
     }
 
+    fun onShowEditNameDialog() {
+        _uiState.update { it.copy(showEditNameDialog = true) }
+    }
+
+    fun onDismissEditNameDialog() {
+        _uiState.update { it.copy(showEditNameDialog = false) }
+    }
+
     fun onNameChanged(newName: String) {
         val currentCheck = uiState.value.check ?: return
         viewModelScope.launch {

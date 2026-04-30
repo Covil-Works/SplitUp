@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -63,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.thaicrew.splitup.Screen
 import com.thaicrew.splitup.friend.domain.Friend
 import com.thaicrew.splitup.ui.theme.LightGreyText
 import timber.log.Timber
@@ -280,11 +282,20 @@ private fun FriendList(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         item(key = "title") {
-            Text(
-                text = "Amigos",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Screen.Friends.icon,
+                    contentDescription = Screen.Friends.label,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = Screen.Friends.label,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
             Spacer(modifier = Modifier.height(12.dp))
         }
 
@@ -567,3 +578,4 @@ private fun HardDeleteConfirmationDialog(
         }
     )
 }
+

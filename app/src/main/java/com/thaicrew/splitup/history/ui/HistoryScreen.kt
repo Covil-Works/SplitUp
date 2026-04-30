@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -30,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.thaicrew.splitup.Screen
 import com.thaicrew.splitup.check.domain.Check
 import com.thaicrew.splitup.ui.theme.LightGreyText
 import java.text.SimpleDateFormat
@@ -79,11 +81,20 @@ private fun HistoryList(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         item(key = "title") {
-            Text(
-                text = "Hist\u00F3rico",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Screen.History.icon,
+                    contentDescription = Screen.History.label,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = Screen.History.label,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
             Spacer(modifier = Modifier.height(12.dp))
         }
 
@@ -148,3 +159,4 @@ private fun HistoryListItem(check: Check, onClick: () -> Unit) {
         }
     }
 }
+

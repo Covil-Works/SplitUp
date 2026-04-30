@@ -1,6 +1,7 @@
 package com.thaicrew.splitup.friend.ui
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -22,6 +23,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -49,6 +52,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -69,6 +73,13 @@ import timber.log.Timber
 fun FriendScreen(
     viewModel: FriendViewModel
 ) {
+    val fabInteractionSource = remember { MutableInteractionSource() }
+    val isFabPressed by fabInteractionSource.collectIsPressedAsState()
+    val fabScale by animateFloatAsState(
+        targetValue = if (isFabPressed) 1.08f else 1f,
+        label = "friend_fab_scale"
+    )
+
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showAddFriendDialog by remember { mutableStateOf(false) }
 
@@ -92,13 +103,15 @@ fun FriendScreen(
                 onClick = { showAddFriendDialog = true },
                 modifier = Modifier
                     .padding(bottom = 10.dp)
-                    .size(72.dp),
+                    .scale(fabScale)
+                    .size(64.dp),
+                interactionSource = fabInteractionSource,
                 shape = CircleShape
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Adicionar Amigo",
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(30.dp)
                 )
             }
         }

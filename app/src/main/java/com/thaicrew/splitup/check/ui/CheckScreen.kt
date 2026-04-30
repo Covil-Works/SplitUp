@@ -2,6 +2,8 @@ package com.thaicrew.splitup.check.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -46,6 +49,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -62,6 +66,13 @@ fun CheckScreen(
     viewModel: CheckViewModel,
     onNavigateToCreate: (Int) -> Unit
 ) {
+    val fabInteractionSource = remember { MutableInteractionSource() }
+    val isFabPressed by fabInteractionSource.collectIsPressedAsState()
+    val fabScale by animateFloatAsState(
+        targetValue = if (isFabPressed) 1.08f else 1f,
+        label = "check_fab_scale"
+    )
+
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val confirmationState by viewModel.confirmationState.collectAsStateWithLifecycle()
 
@@ -161,13 +172,15 @@ fun CheckScreen(
                 onClick = { showCreateDialog = true },
                 modifier = Modifier
                     .padding(bottom = 10.dp)
-                    .size(72.dp),
+                    .scale(fabScale)
+                    .size(64.dp),
+                interactionSource = fabInteractionSource,
                 shape = CircleShape
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Criar Comanda",
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(30.dp)
                 )
             }
         }

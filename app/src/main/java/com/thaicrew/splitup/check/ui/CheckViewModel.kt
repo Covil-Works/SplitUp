@@ -2,13 +2,17 @@ package com.thaicrew.splitup.check.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.thaicrew.splitup.check.domain.CalculateCheckTotalUseCase
 import com.thaicrew.splitup.check.domain.Check
 import com.thaicrew.splitup.check.domain.CheckHasItemsUseCase
 import com.thaicrew.splitup.check.domain.CloseCheckUseCase
 import com.thaicrew.splitup.check.domain.CreateCheckUseCase
 import com.thaicrew.splitup.check.domain.DeleteCheckUseCase
+import com.thaicrew.splitup.check.domain.GetItemsByCheckUseCase
 import com.thaicrew.splitup.check.domain.GetOpenChecksUseCase
+import com.thaicrew.splitup.check.domain.GetParticipantsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,7 +31,10 @@ class CheckViewModel @Inject constructor(
     private val createCheckUseCase: CreateCheckUseCase,
     private val deleteCheckUseCase: DeleteCheckUseCase,
     private val closeCheckUseCase: CloseCheckUseCase,
-    private val checkHasItemsUseCase: CheckHasItemsUseCase
+    private val checkHasItemsUseCase: CheckHasItemsUseCase,
+    private val getParticipantsUseCase: GetParticipantsUseCase,
+    private val getItemsByCheckUseCase: GetItemsByCheckUseCase,
+    private val calculateCheckTotalUseCase: CalculateCheckTotalUseCase
 
 ) : ViewModel() {
 
@@ -39,6 +46,8 @@ class CheckViewModel @Inject constructor(
 
     private val _confirmationState = MutableStateFlow<Pair<Check, SwipeAction>?>(null)
     val confirmationState: StateFlow<Pair<Check, SwipeAction>?> = _confirmationState.asStateFlow()
+    private val participantJobsByCheckId = mutableMapOf<Int, Job>()
+    private val totalJobsByCheckId = mutableMapOf<Int, Job>()
 
     enum class SwipeAction { DELETE, CLOSE }
 
@@ -52,8 +61,58 @@ class CheckViewModel @Inject constructor(
         getOpenChecksUseCase()
             .onEach { checks ->
                 _uiState.update { it.copy(checks = checks, isLoading = false) }
+                observeCheckCardData(checks)
             }
             .launchIn(viewModelScope)
+    }
+
+    private fun observeCheckCardData(checks: List<Check>) {
+        val activeIds = checks.map { it.id }.toSet()
+
+        participantJobsByCheckId.keys
+            .filter { it !in activeIds }
+            .forEach { checkId ->
+                participantJobsByCheckId.remove(checkId)?.cancel()
+                _uiState.update {
+                    it.copy(participantsByCheckId = it.participantsByCheckId - checkId)
+                }
+            }
+
+        totalJobsByCheckId.keys
+            .filter { it !in activeIds }
+            .forEach { checkId ->
+                totalJobsByCheckId.remove(checkId)?.cancel()
+                _uiState.update {
+                    it.copy(totalByCheckId = it.totalByCheckId - checkId)
+                }
+            }
+
+        checks.forEach { check ->
+            if (participantJobsByCheckId[check.id] == null) {
+                participantJobsByCheckId[check.id] = getParticipantsUseCase(check.id)
+                    .onEach { participants ->
+                        _uiState.update { state ->
+                            state.copy(
+                                participantsByCheckId = state.participantsByCheckId + (
+                                    check.id to participants.map { it.name }
+                                )
+                            )
+                        }
+                    }
+                    .launchIn(viewModelScope)
+            }
+
+            if (totalJobsByCheckId[check.id] == null) {
+                totalJobsByCheckId[check.id] = getItemsByCheckUseCase(check.id)
+                    .onEach { items ->
+                        val total = calculateCheckTotalUseCase(items)
+                        _uiState.update { state ->
+                            state.copy(totalByCheckId = state.totalByCheckId + (check.id to total))
+                        }
+                    }
+                    .launchIn(viewModelScope)
+            }
+        }
     }
 
     fun onSwipeAction(check: Check, action: SwipeAction) {

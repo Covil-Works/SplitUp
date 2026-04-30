@@ -388,9 +388,9 @@ private fun CheckListItem(
     val dateString = dateFormatter.format(Date(check.creationDate))
     val totalFormatted = String.format(Locale.US, "%.2f", totalInCents / 100.0)
     val participantsText = if (participants.isEmpty()) {
-        "Participantes: nenhum"
+        "nenhum"
     } else {
-        "Participantes: ${participants.joinToString(separator = ", ")}"
+        participants.joinToString(separator = ", ")
     }
 
     Card(
@@ -422,23 +422,6 @@ private fun CheckListItem(
                 )
             }
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.DateRange,
-                    contentDescription = "Data de criacao",
-                    modifier = Modifier.size(14.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.size(6.dp))
-                Text(
-                    text = dateString,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
             AnimatedVisibility(
                 visible = isExpanded,
                 enter = fadeIn() + expandVertically(),
@@ -450,6 +433,23 @@ private fun CheckListItem(
                         .padding(top = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = "Data de criacao",
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.size(6.dp))
+                        Text(
+                            text = dateString,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -478,9 +478,13 @@ private fun CheckListItem(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        OutlinedButton(
+                        Button(
                             modifier = Modifier.weight(1f),
-                            onClick = onCloseClick
+                            onClick = onCloseClick,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.secondary
+                            )
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Check,

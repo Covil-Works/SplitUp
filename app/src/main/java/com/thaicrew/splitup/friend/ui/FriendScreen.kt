@@ -1,10 +1,12 @@
 package com.thaicrew.splitup.friend.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -74,6 +76,7 @@ fun FriendScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0.dp),
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddFriendDialog = true },
@@ -145,29 +148,30 @@ fun FriendScreen(
             }
         }
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-
-            if (uiState.isLoading) {
+        if (uiState.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
                 CircularProgressIndicator()
-            } else {
-                FriendList(
-                    friends = uiState.friends,
-                    onDeleteFriend = { friend ->
-                        Timber.d("Botão 'Delete' clicado para o amigo: '${friend.name}' (ID: ${friend.id})")
-                        viewModel.onDeleteTriggered(friend)
-                    },
-                    onEditFriend = { friend ->
-                        Timber.d("Botão 'Edit' clicado para o amigo: '${friend.name}' (ID: ${friend.id})")
-                        viewModel.onEditTriggered(friend)
-                    }
-                )
             }
+        } else {
+            FriendList(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                friends = uiState.friends,
+                onDeleteFriend = { friend ->
+                    Timber.d("Bot\u00E3o 'Delete' clicado para o amigo: '${friend.name}' (ID: ${friend.id})")
+                    viewModel.onDeleteTriggered(friend)
+                },
+                onEditFriend = { friend ->
+                    Timber.d("Bot\u00E3o 'Edit' clicado para o amigo: '${friend.name}' (ID: ${friend.id})")
+                    viewModel.onEditTriggered(friend)
+                }
+            )
         }
     }
 }
@@ -239,30 +243,43 @@ private fun AddFriendDialog(
  */
 @Composable
 private fun FriendList(
+    modifier: Modifier = Modifier,
     friends: List<Friend>,
     onDeleteFriend: (Friend) -> Unit,
     onEditFriend: (Friend) -> Unit
 ) {
-    if (friends.isEmpty()) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text("Nenhum amigo ativo no momento.")
-            Spacer(modifier = Modifier.height(8.dp))
+    LazyColumn(
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 205.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        item(key = "title") {
             Text(
-                text = "Toque no + para adicionar",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = "Amigos",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface
             )
+            Spacer(modifier = Modifier.height(12.dp))
         }
-    } else {
-        LazyColumn(
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(top = 58.dp, bottom = 205.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
+
+        if (friends.isEmpty()) {
+            item(key = "empty_state") {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("Nenhum amigo ativo no momento.")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Toque no + para adicionar",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        } else {
             items(friends, key = { friend -> friend.id }) { friend ->
                 FriendListItem(
                     friend = friend,
@@ -273,7 +290,6 @@ private fun FriendList(
         }
     }
 }
-
 /**
  * Componente que exibe um único item da lista de amigos.
  */

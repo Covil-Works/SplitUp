@@ -13,10 +13,9 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.DrawerValue
@@ -38,8 +37,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -55,6 +52,9 @@ import com.thaicrew.splitup.friend.ui.FriendViewModel
 import com.thaicrew.splitup.ui.theme.SplitUpTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+
+val MainTopBarMinHeight = 70.dp
+val MainTopBarFadeHeight = 16.dp
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -100,6 +100,7 @@ class MainActivity : ComponentActivity() {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
+                                .padding(innerPadding)
                         ) {
                             AppNavHost(
                                 navController = navController,
@@ -117,11 +118,11 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainTopBar(onMenuClick: () -> Unit) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        // Barra sólida
+        // Barra solida
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(70.dp)
+                .heightIn(min = MainTopBarMinHeight)
                 .background(MaterialTheme.colorScheme.primary)
                 .padding(horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -130,7 +131,7 @@ fun MainTopBar(onMenuClick: () -> Unit) {
                 painter = painterResource(id = R.drawable.icone_topbar),
                 contentDescription = "Logo do app",
                 modifier = Modifier
-                    .padding(start = 16.dp, top = 20.dp)
+                    .padding(start = 16.dp, top = 30.dp)
                     .size(30.dp)
             )
 
@@ -139,7 +140,7 @@ fun MainTopBar(onMenuClick: () -> Unit) {
             // RIGHT: Menu icon (three horizontal lines)
             IconButton(
                 onClick = onMenuClick,
-                modifier = Modifier.padding(end = 8.dp, top = 20.dp)
+                modifier = Modifier.padding(end = 8.dp, top = 30.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Menu,
@@ -151,7 +152,7 @@ fun MainTopBar(onMenuClick: () -> Unit) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(24.dp)
+                .height(MainTopBarFadeHeight)
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
@@ -171,73 +172,55 @@ fun AppBottomNavigation(navController: NavHostController) {
     val currentDestination = navBackStackEntry?.destination
     val currentRoute = currentDestination?.route
 
-    Box(
-        contentAlignment = Alignment.BottomCenter,
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.surfaceBright,
+        tonalElevation = 0.dp,
         modifier = Modifier
             .fillMaxWidth()
-            .background(
-                // 1. COR E OPACIDADE: Controle o degradê aqui
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color.Transparent, // Começa invisível no topo do Box
-                        MaterialTheme.colorScheme.background.copy(alpha = 0.9f) // Termina com a cor das barras na base
-                    )
-                )
-            )
+            .height(100.dp),
+        windowInsets = WindowInsets(0.dp)
     ) {
-        NavigationBar(
-            containerColor = MaterialTheme.colorScheme.surfaceBright,
-            tonalElevation = 0.dp,
-            modifier = Modifier
-                // 2. ALTURA DO FADE: Aumente este 'top' se quiser que o fade comece mais alto na tela
-                .padding(top = 48.dp)
-                .navigationBarsPadding()
-                .padding(start = 24.dp, end = 24.dp, bottom = 24.dp)
-                .shadow(elevation = 12.dp, shape = RoundedCornerShape(32.dp))
-                .clip(RoundedCornerShape(50.dp)),
-            windowInsets = WindowInsets(0.dp)
-        ) {
-            items.forEach { screen ->
-                val isSelected = when (screen) {
-                    Screen.Checks -> currentRoute == Screen.Checks.route || currentRoute?.startsWith(
-                        "check_detail"
-                    ) == true
+        items.forEach { screen ->
+            val isSelected = when (screen) {
+                Screen.Checks -> currentRoute == Screen.Checks.route || currentRoute?.startsWith(
+                    "check_detail"
+                ) == true
 
-                    Screen.History -> currentRoute == Screen.History.route || currentRoute?.startsWith(
-                        "paid_check_detail"
-                    ) == true
+                Screen.History -> currentRoute == Screen.History.route || currentRoute?.startsWith(
+                    "paid_check_detail"
+                ) == true
 
-                    else -> currentDestination?.hierarchy?.any { it.route == screen.route } == true
-                }
+                else -> currentDestination?.hierarchy?.any { it.route == screen.route } == true
+            }
 
-                NavigationBarItem(
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = MaterialTheme.colorScheme.onPrimary,
-                        selectedTextColor = MaterialTheme.colorScheme.onPrimary,
-                        indicatorColor = MaterialTheme.colorScheme.primary,
-                        unselectedIconColor = MediumContrastText,
-                        unselectedTextColor = MediumContrastText,
-                        disabledIconColor = MediumContrastText,
-                        disabledTextColor = MediumContrastText,
-                    ),
-                    icon = { Icon(screen.icon, contentDescription = null) },
-                    label = { Text(screen.label) },
-                    selected = isSelected,
-                    onClick = {
-                        if (isSelected && currentRoute != screen.route) {
-                            navController.popBackStack(screen.route, inclusive = false)
-                        } else if (!isSelected) {
-                            navController.navigate(screen.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
+            NavigationBarItem(
+                modifier = Modifier.padding(bottom = 5.dp),
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                    selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                    indicatorColor = MaterialTheme.colorScheme.primary,
+                    unselectedIconColor = MediumContrastText,
+                    unselectedTextColor = MediumContrastText,
+                    disabledIconColor = MediumContrastText,
+                    disabledTextColor = MediumContrastText,
+                ),
+                icon = { Icon(screen.icon, contentDescription = null) },
+                label = { Text(screen.label) },
+                selected = isSelected,
+                onClick = {
+                    if (isSelected && currentRoute != screen.route) {
+                        navController.popBackStack(screen.route, inclusive = false)
+                    } else if (!isSelected) {
+                        navController.navigate(screen.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
                             }
+                            launchSingleTop = true
+                            restoreState = true
                         }
                     }
-                )
-            }
+                }
+            )
         }
     }
 }

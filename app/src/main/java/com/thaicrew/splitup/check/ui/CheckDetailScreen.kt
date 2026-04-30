@@ -31,6 +31,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import com.thaicrew.splitup.check.domain.ItemWithSharers
@@ -59,7 +60,7 @@ fun CheckDetailScreen(
     uiState.infoDialogMessage?.let { message ->
         AlertDialog(
             onDismissRequest = { viewModel.onDismissInfoDialog() },
-            title = { Text("Atenção") },
+            title = { Text("Atencao") },
             text = { Text(message) },
             confirmButton = {
                 Button(onClick = { viewModel.onDismissInfoDialog() }) { Text("Ok") }
@@ -94,7 +95,7 @@ fun CheckDetailScreen(
     Scaffold(
         topBar = {
             Column(modifier = Modifier.fillMaxWidth()) {
-                // Barra sólida
+                // Barra solida
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -103,40 +104,26 @@ fun CheckDetailScreen(
                         .padding(horizontal = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                // Botão de Voltar (Esquerda)
+                // Botao de Voltar (Esquerda)
                 IconButton(onClick = onNavigateBack) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
                 }
-
-                // Título e Editar (Centro)
-                Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .clip(MaterialTheme.shapes.small)
-                            .clickable { showEditDialog = true }
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Text(
-                            text = uiState.check?.name ?: "Carregando...",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "Editar",
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.secondary
-                        )
-                    }
+                Text(
+                    text = uiState.check?.name ?: "Carregando...",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { showEditDialog = true }
+                )
+                IconButton(onClick = { showEditDialog = true }) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Editar comanda"
+                    )
                 }
-
-                // Espaçador invisível (Direita) - Serve apenas para manter o título perfeitamente centrado
-                Spacer(modifier = Modifier.width(48.dp))
             }
                 // Fade/sombra abaixo da barra
                 Box(
@@ -164,7 +151,7 @@ fun CheckDetailScreen(
                     .padding(paddingValues),
                 contentPadding = PaddingValues(bottom = 150.dp)
             ) {
-                // --- SEÇÃO 1: Participantes (Topo) ---
+                // --- SECAO 1: Participantes (Topo) ---
                 item {
                     ParticipantsSection(
                         participants = uiState.participants,
@@ -174,7 +161,7 @@ fun CheckDetailScreen(
                     HorizontalDivider()
                 }
 
-                // --- SEÇÃO 2: Adicionar Item (Formulário) ---
+                // --- SECAO 2: Adicionar Item (Formulario) ---
                 item {
                     AddItemSection(
                         name = uiState.newItemName,
@@ -186,7 +173,7 @@ fun CheckDetailScreen(
                     )
                 }
 
-                // --- SEÇÃO 3: Quem divide o item ---
+                // --- SECAO 3: Quem divide o item ---
                 item {
                     Spacer(modifier = Modifier.height(8.dp))
                     ItemParticipantsSection(
@@ -198,7 +185,7 @@ fun CheckDetailScreen(
                     )
                 }
 
-                // --- SEÇÃO 4: Botão de Ação ---
+                // --- SECAO 4: Botao de Acao ---
                 item {
                     val hasParticipants = uiState.participants.isNotEmpty()
                     val isSelectionValid = (uiState.isAllSelected && hasParticipants) || uiState.selectedFriendIdsForItem.isNotEmpty()
@@ -211,7 +198,7 @@ fun CheckDetailScreen(
                     Divider(modifier = Modifier.padding(vertical = 8.dp))
                 }
 
-                // --- SEÇÃO 5: Seletor de Visualização ---
+                // --- SECAO 5: Seletor de Visualizacao ---
                 item {
                     CheckViewModeSelector(
                         currentMode = uiState.viewMode,
@@ -219,13 +206,13 @@ fun CheckDetailScreen(
                     )
                 }
 
-                // --- SEÇÃO 6: Lista Dinâmica (Muda conforme a aba) ---
+                // --- SECAO 6: Lista Dinamica (Muda conforme a aba) ---
                 when (uiState.viewMode) {
                     CheckViewMode.ByFriend -> {
                         if (uiState.participants.isEmpty()) {
                             item {
                                 Text(
-                                    "Adicione amigos para ver a divisão.",
+                                    "Adicione amigos para ver a divisao.",
                                     modifier = Modifier.padding(16.dp),
                                     style = MaterialTheme.typography.bodyMedium
                                 )
@@ -251,7 +238,7 @@ fun CheckDetailScreen(
                         if (uiState.itemsWithSharers.isEmpty()) {
                             item {
                                 Text(
-                                    "Adicione itens para ver a divisão.",
+                                    "Adicione itens para ver a divisao.",
                                     modifier = Modifier.padding(16.dp),
                                     style = MaterialTheme.typography.bodyMedium
                                 )
@@ -288,14 +275,14 @@ fun CheckDetailScreen(
                         }
                     }
                 }
-                // --- SEÇÃO 7: Total e Fechamento (só aparece quando há itens) ---
+                // --- SECAO 7: Total e Fechamento (so aparece quando ha itens) ---
                 if (uiState.items.isNotEmpty()) {
                     item {
                         Spacer(modifier = Modifier.height(24.dp))
                         Divider()
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Cálculos de formatação (convertendo cents para Real)
+                        // Calculos de formatacao (convertendo cents para Real)
                         val total = uiState.checkTotal
                         val totalWithTip = (total * 1.1).toLong() // +10%
 
@@ -309,7 +296,7 @@ fun CheckDetailScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // LADO ESQUERDO: Informações de Valores
+                            // LADO ESQUERDO: Informacoes de Valores
                             Column {
                                 Text(
                                     text = "Total",
@@ -329,7 +316,7 @@ fun CheckDetailScreen(
                                 )
                             }
 
-                            // LADO DIREITO: Botão de Fechar
+                            // LADO DIREITO: Botao de Fechar
                             CloseCheckButton(
                                 onClick = { viewModel.onCloseCheckClicked() }
                             )
@@ -348,7 +335,7 @@ fun SelectFriendsBottomSheet(
     onConfirm: (List<Int>) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
-    // Lista temporária para guardar os IDs selecionados no sheet
+    // Lista temporaria para guardar os IDs selecionados no sheet
     val selectedIds = remember { mutableStateListOf<Int>() }
 
     ModalBottomSheet(
@@ -370,7 +357,7 @@ fun SelectFriendsBottomSheet(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f, fill = false) // Não ocupa a tela toda se tiver poucos amigos
+                    .weight(1f, fill = false) // Nao ocupa a tela toda se tiver poucos amigos
             ) {
                 items(availableFriends) { friend ->
                     Row(
@@ -393,7 +380,7 @@ fun SelectFriendsBottomSheet(
                         )
                         Checkbox(
                             checked = selectedIds.contains(friend.id),
-                            onCheckedChange = null // O clique é tratado na Row para melhor UX
+                            onCheckedChange = null // O clique e tratado na Row para melhor UX
                         )
                     }
                 }
@@ -460,7 +447,7 @@ fun ParticipantsSection(
                 participants.forEach { friend ->
                     InputChip(
                         selected = false,
-                        onClick = { /* Ação futura: Ver gastos do amigo */ },
+                        onClick = { /* Acao futura: Ver gastos do amigo */ },
                         label = { Text(friend.name) },
                         trailingIcon = {
                             Icon(
@@ -474,7 +461,7 @@ fun ParticipantsSection(
                     )
                 }
 
-                // Botão "+" ao final da lista
+                // Botao "+" ao final da lista
                 IconButton(
                     onClick = onAddClicked,
                     modifier = Modifier.size(32.dp)
@@ -562,13 +549,13 @@ fun AddItemSection(
         // 2. Linha com Valor (Esq) e Quantidade (Dir)
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp) // Espaço entre os campos
+            horizontalArrangement = Arrangement.spacedBy(16.dp) // Espaco entre os campos
         ) {
-            // --- ESQUERDA: Valor Unitário ---
+            // --- ESQUERDA: Valor Unitario ---
             OutlinedTextField(
                 value = value,
                 onValueChange = onValueChange,
-                label = { Text("Valor unitário") },
+                label = { Text("Valor unitario") },
                 modifier = Modifier.weight(1f),
                 singleLine = true,
                 prefix = { Text("R$ ") },
@@ -582,7 +569,7 @@ fun AddItemSection(
             // Usamos um OutlinedTextField ReadOnly para manter o mesmo estilo visual e altura
             OutlinedTextField(
                 value = quantity.toString(),
-                onValueChange = {}, // ReadOnly, a mudança é pelos botões
+                onValueChange = {}, // ReadOnly, a mudanca e pelos botoes
                 label = { Text("Quantidade") },
                 modifier = Modifier.weight(1f),
                 readOnly = true,
@@ -630,17 +617,17 @@ fun ItemParticipantsSection(
 
         if (allParticipants.isEmpty()) {
             Text(
-                text = "Adicione amigos à comanda primeiro.",
+                text = "Adicione amigos a comanda primeiro.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onPrimary
             )
         } else {
-            // Lógica de Exibição: TODOS ou MANUAL
+            // Logica de Exibicao: TODOS ou MANUAL
             if (isAllSelected) {
-                // Modo Automático
+                // Modo Automatico
                 InputChip(
                     selected = true,
-                    onClick = { /* Não faz nada ao clicar no corpo, apenas no X */ },
+                    onClick = { /* Nao faz nada ao clicar no corpo, apenas no X */ },
                     label = { Text("TODOS") },
                     trailingIcon = {
                         Icon(
@@ -703,9 +690,9 @@ fun CheckViewModeSelector(
     currentMode: CheckViewMode,
     onModeSelected: (CheckViewMode) -> Unit
 ) {
-    val outerRadius = 24.dp // Como a altura é 48.dp, a metade (24) cria um formato de pílula arredondada perfeita
+    val outerRadius = 24.dp // Como a altura e 48.dp, a metade (24) cria um formato de pilula arredondada perfeita
     val padding = 4.dp
-    val innerRadius = outerRadius - padding // O resultado será exatos 20.dp
+    val innerRadius = outerRadius - padding // O resultado sera exatos 20.dp
 
     Row(
         modifier = Modifier
@@ -717,7 +704,7 @@ fun CheckViewModeSelector(
             .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.extraLarge),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Opção: POR ITEM
+        // Opcao: POR ITEM
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -735,7 +722,7 @@ fun CheckViewModeSelector(
             )
         }
 
-        // Opção: POR PESSOA
+        // Opcao: POR PESSOA
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -911,7 +898,7 @@ fun ExpandableItemCard(
         modifier = Modifier
             .fillMaxWidth()
             .animateContentSize()
-            // Se não estiver expandido, o clique expande. Se estiver, o clique fecha (lógica no VM)
+            // Se nao estiver expandido, o clique expande. Se estiver, o clique fecha (logica no VM)
             .clickable { if (!isEditing) onClickExpand() },
         elevation = CardDefaults.cardElevation(defaultElevation = if (isExpanded) 4.dp else 1.dp),
         colors = CardDefaults.cardColors(
@@ -921,7 +908,7 @@ fun ExpandableItemCard(
         Column(modifier = Modifier.padding(16.dp)) {
 
             if (isEditing) {
-                // ================= MODO EDIÇÃO (Formulário) =================
+                // ================= MODO EDICAO (Formulario) =================
                 Text(
                     "Editando Item",
                     style = MaterialTheme.typography.labelMedium,
@@ -960,7 +947,7 @@ fun ExpandableItemCard(
                 }
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Quem divide (Chips selecionáveis)
+                // Quem divide (Chips selecionaveis)
                 Text("Quem divide:", style = MaterialTheme.typography.bodySmall)
                 Spacer(modifier = Modifier.height(4.dp))
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -978,13 +965,13 @@ fun ExpandableItemCard(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Botões (Delete, Cancelar, Salvar)
+                // Botoes (Delete, Cancelar, Salvar)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Botão Excluir (Ícone Lixeira)
+                    // Botao Excluir (Icone Lixeira)
                     IconButton(onClick = onDeleteClick) {
                         Icon(Icons.Default.Delete, "Excluir", tint = MaterialTheme.colorScheme.error)
                     }
@@ -1003,7 +990,7 @@ fun ExpandableItemCard(
             } else {
                 // ================= MODO LEITURA (Resumo + Detalhes) =================
 
-                // Cabeçalho (Sempre visível)
+                // Cabecalho (Sempre visivel)
                 val unitValueInCents = itemWithSharers.item.valueInCents
                 val totalItemValue = unitValueInCents * itemWithSharers.item.quantity
                 Row(
@@ -1018,12 +1005,12 @@ fun ExpandableItemCard(
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(
-                            text = "${itemWithSharers.item.quantity}x • R$ ${String.format("%.2f", unitValueInCents / 100.0)}",
+                            text = "${itemWithSharers.item.quantity}x - R$ ${String.format("%.2f", unitValueInCents / 100.0)}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    // Se expandido, mostra botão de Editar. Se não, mostra valor total.
+                    // Se expandido, mostra botao de Editar. Se nao, mostra valor total.
                     if (isExpanded) {
                         IconButton(onClick = onStartEdit) {
                             Icon(Icons.Default.Edit, contentDescription = "Editar Item", tint = MaterialTheme.colorScheme.primary)
@@ -1037,7 +1024,7 @@ fun ExpandableItemCard(
                     }
                 }
 
-                // Detalhes extras (Só aparecem se expandido)
+                // Detalhes extras (So aparecem se expandido)
                 if (isExpanded) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Divider(color = MaterialTheme.colorScheme.surfaceVariant)
@@ -1056,7 +1043,7 @@ fun ExpandableItemCard(
                         .joinToString(", ") { it.name }
 
                     Text(
-                        text = if (sharerNames.isEmpty()) "Ninguém" else sharerNames,
+                        text = if (sharerNames.isEmpty()) "Ninguem" else sharerNames,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -1090,7 +1077,7 @@ fun CloseCheckConfirmationDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Fechar comanda?") },
-        text = { Text("Ao fechar a comanda, ela será marcada como paga e arquivada. Tem certeza?") },
+        text = { Text("Ao fechar a comanda, ela sera marcada como paga e arquivada. Tem certeza?") },
         confirmButton = {
             Button(
                 onClick = onConfirm,
@@ -1133,7 +1120,7 @@ private fun ExpandableFriendTotalCard(
             .clickable { onClickExpand() }
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Cabeçalho (sempre visível)
+            // Cabecalho (sempre visivel)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -1155,7 +1142,7 @@ private fun ExpandableFriendTotalCard(
                 )
             }
 
-            // Detalhes (só quando expandido)
+            // Detalhes (so quando expandido)
             if (isExpanded) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Divider(color = MaterialTheme.colorScheme.surfaceVariant)
@@ -1182,7 +1169,7 @@ private fun ExpandableFriendTotalCard(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(text = owed.itemName, style = MaterialTheme.typography.bodyLarge)
                                 Text(
-                                    text = "${owed.quantity}x × R$ $unitFormatted",
+                                    text = "${owed.quantity}x - R$ $unitFormatted",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -1200,3 +1187,4 @@ private fun ExpandableFriendTotalCard(
         }
     }
 }
+

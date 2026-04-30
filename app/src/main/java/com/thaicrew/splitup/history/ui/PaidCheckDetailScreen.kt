@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -68,7 +69,7 @@ fun PaidCheckDetailScreen(
         AlertDialog(
             onDismissRequest = { viewModel.onDismissDialogs() },
             title = { Text("Apagar Comanda") },
-            text = { Text("Essa ação é irreversível.") },
+            text = { Text("Essa acao e irreversivel.") },
             confirmButton = { Button(onClick = { viewModel.onDeleteConfirmed() }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) { Text("Apagar") } },
             dismissButton = {
                 TextButton(
@@ -85,7 +86,7 @@ fun PaidCheckDetailScreen(
         AlertDialog(
             onDismissRequest = { viewModel.onDismissDialogs() },
             title = { Text("Reabrir Comanda") },
-            text = { Text("A comanda voltará para a lista de abertas.") },
+            text = { Text("A comanda voltara para a lista de abertas.") },
             confirmButton = { Button(onClick = { viewModel.onReopenConfirmed() }) { Text("Reabrir") } },
             dismissButton = {
                 TextButton(
@@ -101,7 +102,7 @@ fun PaidCheckDetailScreen(
     Scaffold(
         topBar = {
             Column(modifier = Modifier.fillMaxWidth()) {
-                // Barra sólida
+                // Barra solida
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -110,24 +111,21 @@ fun PaidCheckDetailScreen(
                         .padding(horizontal = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                // Botão de Voltar (Esquerda)
+                // Botao de Voltar (Esquerda)
                 IconButton(onClick = onNavigateBack) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
                 }
+                Text(
+                    text = uiState.check?.name ?: "Detalhes",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
 
-                // Título (Centro)
-                Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = uiState.check?.name ?: "Detalhes",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
 
-                // Botões de Ação (Direita)
+                // Botoes de Acao (Direita)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { viewModel.onExportClicked() }) {
                         Icon(Icons.Default.Share, contentDescription = "Exportar PDF")
@@ -135,7 +133,7 @@ fun PaidCheckDetailScreen(
 
                     Box {
                         IconButton(onClick = { showMenu = true }) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "Opções")
+                            Icon(Icons.Default.MoreVert, contentDescription = "Opcoes")
                         }
                         DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
                             DropdownMenuItem(
@@ -172,7 +170,8 @@ fun PaidCheckDetailScreen(
         } else {
             Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
 
-                // 1. Cabeçalho de Total
+
+                // 1. Cabecalho de Total
                 val totalFormatted = String.format("%.2f", uiState.checkTotal / 100.0)
                 Card(
                     modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -202,7 +201,7 @@ fun PaidCheckDetailScreen(
                                     ExpandableItemCard(
                                         itemWithSharers = itemWithSharers,
                                         isExpanded = uiState.expandedItemId == itemWithSharers.item.id,
-                                        isEditing = false, // TRAVA VISUAL: Nunca entra em modo edição
+                                        isEditing = false, // TRAVA VISUAL: Nunca entra em modo edicao
                                         editingName = "", editingQuantity = 0, editingValue = "", editingSharers = emptySet(),
                                         allParticipants = uiState.participants,
                                         onClickExpand = { viewModel.onExpandItem(itemWithSharers.item.id) },
@@ -251,7 +250,7 @@ private fun ExpandableFriendTotalCard(
             .clickable { onClickExpand() }
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Cabeçalho (sempre visível)
+            // Cabecalho (sempre visivel)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -273,7 +272,7 @@ private fun ExpandableFriendTotalCard(
                 )
             }
 
-            // Detalhes (só quando expandido)
+            // Detalhes (so quando expandido)
             if (isExpanded) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Divider(color = MaterialTheme.colorScheme.surfaceVariant)
@@ -300,7 +299,7 @@ private fun ExpandableFriendTotalCard(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(text = owed.itemName, style = MaterialTheme.typography.bodyLarge)
                                 Text(
-                                    text = "${owed.quantity}x × R$ $unitFormatted",
+                                    text = "${owed.quantity}x - R$ $unitFormatted",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -318,3 +317,4 @@ private fun ExpandableFriendTotalCard(
         }
     }
 }
+

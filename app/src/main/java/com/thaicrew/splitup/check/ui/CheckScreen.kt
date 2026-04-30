@@ -1,5 +1,14 @@
 package com.thaicrew.splitup.check.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -19,12 +28,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -33,6 +44,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SwipeToDismissBox
@@ -53,11 +65,12 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.thaicrew.splitup.Screen
 import com.thaicrew.splitup.check.domain.Check
 import com.thaicrew.splitup.ui.theme.LightGreyText
-import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -83,14 +96,11 @@ fun CheckScreen(
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
             when (event) {
-                is CheckUiEvent.NavigateToCheckDetail -> {
-                    onNavigateToCreate(event.checkId)
-                }
+                is CheckUiEvent.NavigateToCheckDetail -> onNavigateToCreate(event.checkId)
             }
         }
     }
 
-    // Dialog de Criação de Comanda
     if (showCreateDialog) {
         AlertDialog(
             onDismissRequest = { showCreateDialog = false },
@@ -125,11 +135,10 @@ fun CheckScreen(
         )
     }
 
-    // Dialog informativo (quando ação não pode ser executada)
     uiState.infoDialogMessage?.let { message ->
         AlertDialog(
             onDismissRequest = { viewModel.onDismissInfoDialog() },
-            title = { Text(text = "Atenção") },
+            title = { Text(text = "Atencao") },
             text = { Text(text = message) },
             confirmButton = {
                 Button(onClick = { viewModel.onDismissInfoDialog() }) { Text("Ok") }
@@ -137,13 +146,13 @@ fun CheckScreen(
         )
     }
 
-    // Dialog de Confirmação de Ação (Swipe)
     confirmationState?.let { (check, action) ->
         val title = if (action == CheckViewModel.SwipeAction.DELETE) "Excluir Comanda?" else "Fechar Comanda?"
-        val message = if (action == CheckViewModel.SwipeAction.DELETE)
-            "Tem certeza que deseja excluir '${check.name}'? Isso não pode ser desfeito."
-        else
+        val message = if (action == CheckViewModel.SwipeAction.DELETE) {
+            "Tem certeza que deseja excluir '${check.name}'? Isso nao pode ser desfeito."
+        } else {
             "Deseja encerrar a comanda '${check.name}'?"
+        }
         val confirmText = if (action == CheckViewModel.SwipeAction.DELETE) "Excluir" else "Fechar"
 
         AlertDialog(
@@ -151,9 +160,7 @@ fun CheckScreen(
             title = { Text(text = title) },
             text = { Text(text = message) },
             confirmButton = {
-                Button(
-                    onClick = { viewModel.onConfirmAction() } // O VM já sabe qual ação executar
-                ) { Text(confirmText) }
+                Button(onClick = { viewModel.onConfirmAction() }) { Text(confirmText) }
             },
             dismissButton = {
                 TextButton(
@@ -201,6 +208,8 @@ fun CheckScreen(
                     .fillMaxSize()
                     .padding(paddingValues),
                 checks = uiState.checks,
+                participantsByCheckId = uiState.participantsByCheckId,
+                totalByCheckId = uiState.totalByCheckId,
                 onCheckClick = { id -> viewModel.onCheckClicked(id) },
                 onSwipeAction = viewModel::onSwipeAction
             )
@@ -212,20 +221,33 @@ fun CheckScreen(
 private fun CheckList(
     modifier: Modifier = Modifier,
     checks: List<Check>,
+    participantsByCheckId: Map<Int, List<String>>,
+    totalByCheckId: Map<Int, Long>,
     onCheckClick: (Int) -> Unit,
     onSwipeAction: (Check, CheckViewModel.SwipeAction) -> Unit
 ) {
+    var expandedCheckId by remember { mutableStateOf<Int?>(null) }
+
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 220.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         item(key = "title") {
-            Text(
-                text = "Comandas",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Screen.Checks.icon,
+                    contentDescription = Screen.Checks.label,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(modifier = Modifier.size(8.dp))
+                Text(
+                    text = Screen.Checks.label,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
             Spacer(modifier = Modifier.height(12.dp))
         }
 
@@ -250,7 +272,13 @@ private fun CheckList(
             items(checks, key = { it.id }) { check ->
                 SwipeableCheckItem(
                     check = check,
+                    isExpanded = expandedCheckId == check.id,
+                    participants = participantsByCheckId[check.id].orEmpty(),
+                    totalInCents = totalByCheckId[check.id] ?: 0L,
                     onClick = { onCheckClick(check.id) },
+                    onMoreClick = {
+                        expandedCheckId = if (expandedCheckId == check.id) null else check.id
+                    },
                     onSwipeAction = onSwipeAction
                 )
             }
@@ -261,19 +289,21 @@ private fun CheckList(
 @Composable
 private fun SwipeableCheckItem(
     check: Check,
+    isExpanded: Boolean,
+    participants: List<String>,
+    totalInCents: Long,
     onClick: () -> Unit,
+    onMoreClick: () -> Unit,
     onSwipeAction: (Check, CheckViewModel.SwipeAction) -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
 
-    // Configuração do estado do Swipe
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { dismissValue ->
             when (dismissValue) {
                 SwipeToDismissBoxValue.StartToEnd -> {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     onSwipeAction(check, CheckViewModel.SwipeAction.CLOSE)
-                    // Retornamos false para o item não sumir imediatamente antes do Dialog confirmar
                     false
                 }
                 SwipeToDismissBoxValue.EndToStart -> {
@@ -330,35 +360,73 @@ private fun SwipeableCheckItem(
             }
         },
         content = {
-            CheckListItem(check = check, onClick = onClick)
+            CheckListItem(
+                check = check,
+                isExpanded = isExpanded,
+                participants = participants,
+                totalInCents = totalInCents,
+                onCardClick = onClick,
+                onMoreClick = onMoreClick,
+                onDeleteClick = { onSwipeAction(check, CheckViewModel.SwipeAction.DELETE) }
+            )
         }
     )
 }
 
 @Composable
-private fun CheckListItem(check: Check, onClick: () -> Unit) {
+private fun CheckListItem(
+    check: Check,
+    isExpanded: Boolean,
+    participants: List<String>,
+    totalInCents: Long,
+    onCardClick: () -> Unit,
+    onMoreClick: () -> Unit,
+    onDeleteClick: () -> Unit
+) {
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
     val dateString = dateFormatter.format(Date(check.creationDate))
+    val totalFormatted = String.format(Locale.US, "%.2f", totalInCents / 100.0)
+    val participantsText = if (participants.isEmpty()) {
+        "Participantes: nenhum"
+    } else {
+        "Participantes: ${participants.joinToString(separator = ", ")}"
+    }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
     ) {
         Column(
             modifier = Modifier
                 .padding(16.dp)
-                .fillMaxWidth(),
+                .fillMaxWidth()
         ) {
-            Text(
-                text = check.name,
-                style = MaterialTheme.typography.bodyLarge,
-                color = LightGreyText
-            )
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = check.name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = LightGreyText,
+                    modifier = Modifier.weight(1f)
+                )
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "Expandir comanda",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.clickable(onClick = onMoreClick)
+                )
+            }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable(onClick = onCardClick)
+            ) {
                 Icon(
                     imageVector = Icons.Default.DateRange,
-                    contentDescription = "Data de criação",
+                    contentDescription = "Data de criacao",
                     modifier = Modifier.size(14.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -368,6 +436,76 @@ private fun CheckListItem(check: Check, onClick: () -> Unit) {
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+
+            AnimatedVisibility(
+                visible = isExpanded,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.People,
+                            contentDescription = "Participantes da comanda",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(
+                            text = participantsText,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    Text(
+                        text = "Total ate agora: R$ $totalFormatted",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.SemiBold
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            modifier = Modifier.weight(1f),
+                            onClick = onCardClick
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Editar comanda"
+                            )
+                            Spacer(modifier = Modifier.size(8.dp))
+                            Text("Editar")
+                        }
+
+                        OutlinedButton(
+                            modifier = Modifier.weight(1f),
+                            onClick = onDeleteClick
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Apagar comanda",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                            Spacer(modifier = Modifier.size(8.dp))
+                            Text(
+                                text = "Apagar",
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                }
             }
         }
     }

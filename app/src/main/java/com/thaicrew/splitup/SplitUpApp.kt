@@ -13,17 +13,6 @@ class SplitUpApp : Application() {
         // Em builds de release, as chamadas ao Timber nao farao nada.
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
-            runDebugSeeder()
-        }
-    }
-
-    private fun runDebugSeeder() {
-        runCatching {
-            val seederClass = Class.forName("com.thaicrew.splitup.debug.DebugDatabaseSeeder")
-            val method = seederClass.getDeclaredMethod("seedIfNeeded", Application::class.java)
-            method.invoke(null, this)
-        }.onFailure { throwable ->
-            Timber.w(throwable, "DebugDatabaseSeeder indisponivel.")
         }
     }
 }

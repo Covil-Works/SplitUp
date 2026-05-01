@@ -1,9 +1,9 @@
 package com.thaicrew.splitup
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.People
-import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -24,10 +24,10 @@ import com.thaicrew.splitup.history.ui.PaidCheckDetailScreen
 import com.thaicrew.splitup.history.ui.PaidCheckDetailViewModel
 
 sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
-    object Checks : Screen("checks_list", "Comandas", Icons.Default.ReceiptLong)
+    object Checks : Screen("checks_list", "Comandas", Icons.AutoMirrored.Filled.ReceiptLong)
     object Friends : Screen("friends_list", "Amigos", Icons.Default.People)
     object History : Screen("history_list", "Histórico", Icons.Default.History)
-    object CheckDetail : Screen("check_detail/{checkId}", "Detalhes", Icons.Default.ReceiptLong) {
+    object CheckDetail : Screen("check_detail/{checkId}", "Detalhes", Icons.AutoMirrored.Filled.ReceiptLong) {
         fun createRoute(checkId: Int) = "check_detail/$checkId"
     }
     object PaidCheckDetail : Screen("paid_check_detail/{checkId}", "Detalhes Pagos", Icons.Default.History) {

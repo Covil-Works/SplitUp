@@ -103,6 +103,7 @@ class PaidCheckDetailViewModel @Inject constructor(
 
     fun onDeleteConfirmed() {
         val check = uiState.value.check ?: return
+        onDismissDialogs()
         viewModelScope.launch {
             deleteCheckUseCase(check)
             _uiEvent.emit(PaidCheckUiEvent.NavigateBack)
@@ -111,6 +112,7 @@ class PaidCheckDetailViewModel @Inject constructor(
 
     fun onReopenConfirmed() {
         val check = uiState.value.check ?: return
+        onDismissDialogs()
         viewModelScope.launch {
             reopenCheckUseCase(check)
             _uiEvent.emit(PaidCheckUiEvent.NavigateBack) // Volta para lista, pois ela saiu do histórico

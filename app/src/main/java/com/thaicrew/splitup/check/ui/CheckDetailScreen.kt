@@ -29,6 +29,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -287,6 +288,8 @@ fun SelectFriendsBottomSheet(
     onConfirm: (List<Int>) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
+    val configuration = LocalConfiguration.current
+    val maxSheetHeight = configuration.screenHeightDp.dp * 0.7f
     // Lista temporaria para guardar os IDs selecionados no sheet
     val selectedIds = remember { mutableStateListOf<Int>() }
 
@@ -298,18 +301,21 @@ fun SelectFriendsBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 32.dp, start = 16.dp, end = 16.dp)
+                .heightIn(max = maxSheetHeight)
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp)
         ) {
             Text(
                 text = "Selecionar amigos",
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 12.dp)
             )
 
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f, fill = false) // Nao ocupa a tela toda se tiver poucos amigos
+                    .weight(1f),
+                contentPadding = PaddingValues(bottom = 12.dp)
             ) {
                 items(availableFriends) { friend ->
                     Row(
@@ -338,7 +344,8 @@ fun SelectFriendsBottomSheet(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(12.dp))
 
             Button(
                 onClick = { onConfirm(selectedIds.toList()) },
@@ -347,6 +354,8 @@ fun SelectFriendsBottomSheet(
             ) {
                 Text("Adicionar selecionados")
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

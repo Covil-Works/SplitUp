@@ -232,7 +232,7 @@ private fun AppDrawerContent(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "\u00A9 2026 CovilDev",
+                text = "\u00A9 2026 Covil",
                 style = MaterialTheme.typography.labelMedium,
                 color = MediumContrastText
             )

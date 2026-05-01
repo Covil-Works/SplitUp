@@ -1,10 +1,15 @@
 package com.thaicrew.splitup
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -13,6 +18,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,6 +26,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
@@ -29,6 +36,7 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -53,7 +61,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.CircleShape
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -94,7 +104,14 @@ class MainActivity : ComponentActivity() {
             SplitUpTheme {
                 ModalNavigationDrawer(
                     drawerState = drawerState,
-                    drawerContent = { ModalDrawerSheet { } }
+                    drawerContent = {
+                        AppDrawerContent(
+                            onHelpClick = {
+                                scope.launch { drawerState.close() }
+                                openSupportEmail()
+                            }
+                        )
+                    }
                 ) {
                     Scaffold(
                         topBar = {
@@ -160,6 +177,150 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+}
+
+private fun MainActivity.openSupportEmail() {
+    val supportIntent = Intent(
+        Intent.ACTION_VIEW,
+        Uri.parse("https://covildev.com")
+    )
+
+    runCatching { startActivity(supportIntent) }
+        .onFailure {
+            if (it is ActivityNotFoundException) {
+                Toast.makeText(
+                    this,
+                    "Nenhum navegador encontrado neste dispositivo.",
+                    Toast.LENGTH_LONG
+                ).show()
+            } else {
+                Toast.makeText(
+                    this,
+                    "Nao foi possivel abrir o site agora.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+}
+
+@Composable
+private fun AppDrawerContent(
+    onHelpClick: () -> Unit
+) {
+    val versionName = BuildConfig.VERSION_NAME
+
+    ModalDrawerSheet(
+        modifier = Modifier
+            .fillMaxWidth(0.82f)
+            .fillMaxHeight()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp, vertical = 24.dp)
+        ) {
+            Text(
+                text = "Informações",
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            DrawerInfoRow(
+                text = "Versao $versionName",
+                badgeText = "i"
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "\u00A9 2026 CovilDev",
+                style = MaterialTheme.typography.labelMedium,
+                color = MediumContrastText
+            )
+
+            Spacer(modifier = Modifier.height(18.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(18.dp))
+
+            Text(
+                text = "Ajuda",
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            DrawerActionRow(
+                title = "Fale conosco",
+                titleStyle = MaterialTheme.typography.labelMedium,
+                icon = {
+                    DrawerBadgeCircle(text = "?")
+                },
+                onClick = onHelpClick
+            )
+            Spacer(modifier = Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+private fun DrawerActionRow(
+    title: String,
+    titleColor: Color = MaterialTheme.colorScheme.onSurface,
+    titleStyle: androidx.compose.ui.text.TextStyle = MaterialTheme.typography.bodyLarge,
+    icon: @Composable () -> Unit,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        icon()
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = title,
+            color = titleColor,
+            style = titleStyle
+        )
+    }
+}
+
+@Composable
+private fun DrawerInfoRow(
+    text: String,
+    badgeText: String
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        DrawerBadgeCircle(text = badgeText)
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelMedium
+        )
+    }
+}
+
+@Composable
+private fun DrawerBadgeCircle(
+    text: String
+) {
+    Box(
+        modifier = Modifier
+            .size(20.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.surfaceVariant),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -393,4 +554,5 @@ fun AppBottomNavigation(navController: NavHostController) {
         }
     }
 }
+
 

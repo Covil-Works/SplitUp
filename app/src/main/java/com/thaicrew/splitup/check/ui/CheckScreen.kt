@@ -60,8 +60,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
@@ -229,7 +231,7 @@ private fun CheckList(
 
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 70.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 110.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         item(key = "title") {
@@ -296,6 +298,7 @@ private fun SwipeableCheckItem(
     onSwipeAction: (Check, CheckViewModel.SwipeAction) -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
+    val cardShape = MaterialTheme.shapes.medium
 
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { dismissValue ->
@@ -316,27 +319,28 @@ private fun SwipeableCheckItem(
     )
 
     SwipeToDismissBox(
+        modifier = Modifier.clip(cardShape),
         state = dismissState,
         backgroundContent = {
-            val color = when (dismissState.targetValue) {
+            val color = when (dismissState.dismissDirection) {
                 SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.error
                 SwipeToDismissBoxValue.StartToEnd -> MaterialTheme.colorScheme.primary
                 else -> Color.Transparent
             }
 
-            val alignment = when (dismissState.targetValue) {
+            val alignment = when (dismissState.dismissDirection) {
                 SwipeToDismissBoxValue.StartToEnd -> Alignment.CenterStart
                 SwipeToDismissBoxValue.EndToStart -> Alignment.CenterEnd
                 else -> Alignment.Center
             }
 
-            val icon = when (dismissState.targetValue) {
+            val icon = when (dismissState.dismissDirection) {
                 SwipeToDismissBoxValue.EndToStart -> Icons.Default.Delete
                 SwipeToDismissBoxValue.StartToEnd -> Icons.Default.Check
                 else -> null
             }
 
-            val iconTint = when (dismissState.targetValue) {
+            val iconTint = when (dismissState.dismissDirection) {
                 SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.onError
                 SwipeToDismissBoxValue.StartToEnd -> MaterialTheme.colorScheme.onPrimary
                 else -> MaterialTheme.colorScheme.onSurface
@@ -345,7 +349,7 @@ private fun SwipeableCheckItem(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(color)
+                    .background(color = color, shape = cardShape)
                     .padding(horizontal = 20.dp),
                 contentAlignment = alignment
             ) {
@@ -364,6 +368,7 @@ private fun SwipeableCheckItem(
                 isExpanded = isExpanded,
                 participants = participants,
                 totalInCents = totalInCents,
+                shape = cardShape,
                 onCardClick = onClick,
                 onMoreClick = onMoreClick,
                 onCloseClick = { onSwipeAction(check, CheckViewModel.SwipeAction.CLOSE) },
@@ -379,6 +384,7 @@ private fun CheckListItem(
     isExpanded: Boolean,
     participants: List<String>,
     totalInCents: Long,
+    shape: Shape,
     onCardClick: () -> Unit,
     onMoreClick: () -> Unit,
     onCloseClick: () -> Unit,
@@ -394,6 +400,7 @@ private fun CheckListItem(
     }
 
     Card(
+        shape = shape,
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onCardClick)

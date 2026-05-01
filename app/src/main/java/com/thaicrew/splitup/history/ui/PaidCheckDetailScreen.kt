@@ -123,7 +123,7 @@ fun PaidCheckDetailScreen(
                 )
 
                 // 3. Listas
-                LazyColumn(contentPadding = PaddingValues(bottom = 150.dp)) {
+                LazyColumn(contentPadding = PaddingValues(bottom = 20.dp)) {
                     when (uiState.viewMode) {
                         CheckViewMode.ByItem -> {
                             items(uiState.itemsWithSharers) { itemWithSharers ->

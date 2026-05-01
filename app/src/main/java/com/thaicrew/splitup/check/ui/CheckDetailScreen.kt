@@ -101,7 +101,7 @@ fun CheckDetailScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues),
-                contentPadding = PaddingValues(bottom = 150.dp)
+                contentPadding = PaddingValues(bottom = 20.dp)
             ) {
                 // --- SECAO 1: Participantes (Topo) ---
                 item {

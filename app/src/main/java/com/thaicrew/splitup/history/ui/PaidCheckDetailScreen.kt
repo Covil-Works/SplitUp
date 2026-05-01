@@ -62,7 +62,7 @@ fun PaidCheckDetailScreen(
         AlertDialog(
             onDismissRequest = { viewModel.onDismissDialogs() },
             title = { Text("Apagar Comanda") },
-            text = { Text("Essa acao e irreversivel.") },
+            text = { Text("Essa ação é irreversível.") },
             confirmButton = { Button(onClick = { viewModel.onDeleteConfirmed() }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) { Text("Apagar") } },
             dismissButton = {
                 TextButton(
@@ -79,7 +79,7 @@ fun PaidCheckDetailScreen(
         AlertDialog(
             onDismissRequest = { viewModel.onDismissDialogs() },
             title = { Text("Reabrir Comanda") },
-            text = { Text("A comanda voltara para a lista de abertas.") },
+            text = { Text("A comanda voltará para a lista de abertas.") },
             confirmButton = { Button(onClick = { viewModel.onReopenConfirmed() }) { Text("Reabrir") } },
             dismissButton = {
                 TextButton(

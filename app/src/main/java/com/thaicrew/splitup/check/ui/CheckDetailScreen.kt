@@ -57,7 +57,7 @@ fun CheckDetailScreen(
     uiState.infoDialogMessage?.let { message ->
         AlertDialog(
             onDismissRequest = { viewModel.onDismissInfoDialog() },
-            title = { Text("Atencao") },
+            title = { Text("Atenção") },
             text = { Text(message) },
             confirmButton = {
                 Button(onClick = { viewModel.onDismissInfoDialog() }) { Text("Ok") }
@@ -148,7 +148,7 @@ fun CheckDetailScreen(
                         isEnabled = isFormValid,
                         onAddClicked = { viewModel.onAddItemClicked() }
                     )
-                    Divider(modifier = Modifier.padding(vertical = 8.dp))
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 }
 
                 // --- SECAO 5: Seletor de Visualizacao ---
@@ -165,7 +165,7 @@ fun CheckDetailScreen(
                         if (uiState.participants.isEmpty()) {
                             item {
                                 Text(
-                                    "Adicione amigos para ver a divisao.",
+                                    "Adicione amigos para ver a divisão.",
                                     modifier = Modifier.padding(16.dp),
                                     style = MaterialTheme.typography.bodyMedium
                                 )
@@ -191,7 +191,7 @@ fun CheckDetailScreen(
                         if (uiState.itemsWithSharers.isEmpty()) {
                             item {
                                 Text(
-                                    "Adicione itens para ver a divisao.",
+                                    "Adicione itens para ver a divisão.",
                                     modifier = Modifier.padding(16.dp),
                                     style = MaterialTheme.typography.bodyMedium
                                 )
@@ -232,7 +232,7 @@ fun CheckDetailScreen(
                 if (uiState.items.isNotEmpty()) {
                     item {
                         Spacer(modifier = Modifier.height(24.dp))
-                        Divider()
+                        HorizontalDivider()
                         Spacer(modifier = Modifier.height(16.dp))
 
                         // Calculos de formatacao (convertendo cents para Real)
@@ -516,7 +516,7 @@ fun AddItemSection(
             OutlinedTextField(
                 value = value,
                 onValueChange = onValueChange,
-                label = { Text("Valor unitario") },
+                label = { Text("Valor unitário") },
                 modifier = Modifier.weight(1f),
                 singleLine = true,
                 prefix = { Text("R$ ") },
@@ -988,7 +988,7 @@ fun ExpandableItemCard(
                 // Detalhes extras (So aparecem se expandido)
                 if (isExpanded) {
                     Spacer(modifier = Modifier.height(8.dp))
-                    Divider(color = MaterialTheme.colorScheme.surfaceVariant)
+                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
@@ -1038,7 +1038,7 @@ fun CloseCheckConfirmationDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Fechar comanda?") },
-        text = { Text("Ao fechar a comanda, ela sera marcada como paga e arquivada. Tem certeza?") },
+        text = { Text("Ao fechar a comanda, ela será marcada como paga e arquivada. Tem certeza?") },
         confirmButton = {
             Button(
                 onClick = onConfirm,
@@ -1106,7 +1106,7 @@ private fun ExpandableFriendTotalCard(
             // Detalhes (so quando expandido)
             if (isExpanded) {
                 Spacer(modifier = Modifier.height(12.dp))
-                Divider(color = MaterialTheme.colorScheme.surfaceVariant)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                 Spacer(modifier = Modifier.height(12.dp))
 
                 if (owedItems.isEmpty()) {

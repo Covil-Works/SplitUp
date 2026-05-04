@@ -1,5 +1,5 @@
 ﻿<p align="center">
-  <img src="app/src/main/ic_launcher-playstore.png" alt="Ícone do SplitUp" width="120" />
+  <img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp" alt="Ícone do SplitUp" width="120" />
 </p>
 
 # SplitUp

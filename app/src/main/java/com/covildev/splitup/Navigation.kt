@@ -1,0 +1,111 @@
+﻿package com.covildev.splitup
+
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.People
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.covildev.splitup.check.ui.CheckDetailScreen
+import com.covildev.splitup.check.ui.CheckDetailViewModel
+import com.covildev.splitup.check.ui.CheckScreen
+import com.covildev.splitup.check.ui.CheckViewModel
+import com.covildev.splitup.friend.ui.FriendScreen
+import com.covildev.splitup.friend.ui.FriendViewModel
+import com.covildev.splitup.history.ui.HistoryScreen
+import com.covildev.splitup.history.ui.HistoryViewModel
+import com.covildev.splitup.history.ui.PaidCheckDetailScreen
+import com.covildev.splitup.history.ui.PaidCheckDetailViewModel
+
+sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
+    object Checks : Screen("checks_list", "Comandas", Icons.AutoMirrored.Filled.ReceiptLong)
+    object Friends : Screen("friends_list", "Amigos", Icons.Default.People)
+    object History : Screen("history_list", "HistÃ³rico", Icons.Default.History)
+    object CheckDetail : Screen("check_detail/{checkId}", "Detalhes", Icons.AutoMirrored.Filled.ReceiptLong) {
+        fun createRoute(checkId: Int) = "check_detail/$checkId"
+    }
+    object PaidCheckDetail : Screen("paid_check_detail/{checkId}", "Detalhes Pagos", Icons.Default.History) {
+        fun createRoute(checkId: Int) = "paid_check_detail/$checkId"
+    }
+}
+
+@Composable
+fun AppNavHost(
+    navController: NavHostController,
+    friendViewModel: FriendViewModel,
+    checkViewModel: CheckViewModel
+) {
+    NavHost(
+        navController = navController,
+        startDestination = Screen.Checks.route
+    ) {
+        // 1. Tela Principal (Comandas Abertas)
+        composable(Screen.Checks.route) {
+            CheckScreen(
+                viewModel = checkViewModel,
+                onNavigateToCreate = { id ->
+                    // Evita navegaÃ§Ã£o duplicada: sÃ³ navega se ainda estiver na tela de lista
+                    val currentRoute = navController.currentBackStackEntry?.destination?.route
+                    if (currentRoute == Screen.Checks.route) {
+                        navController.navigate(Screen.CheckDetail.createRoute(id)) {
+                            launchSingleTop = true
+                        }
+                    }
+                }
+            )
+        }
+
+        // 2. Tela de Amigos
+        composable(Screen.Friends.route) {
+            FriendScreen(viewModel = friendViewModel)
+        }
+
+        // 3. Tela de HistÃ³rico
+        composable(Screen.History.route) {
+            val historyViewModel: HistoryViewModel = hiltViewModel()
+            HistoryScreen(
+                viewModel = historyViewModel,
+                onCheckClick = { id ->
+                    // Evita navegaÃ§Ã£o duplicada: sÃ³ navega se ainda estiver na tela de histÃ³rico
+                    val currentRoute = navController.currentBackStackEntry?.destination?.route
+                    if (currentRoute == Screen.History.route) {
+                        navController.navigate(Screen.PaidCheckDetail.createRoute(id)) {
+                            launchSingleTop = true
+                        }
+                    }
+                }
+            )
+        }
+
+        // 4. Detalhes de Comanda Aberta (EdiÃ§Ã£o)
+        composable(
+            route = Screen.CheckDetail.route,
+            arguments = listOf(navArgument("checkId") { type = NavType.IntType })
+        ) {
+            val detailViewModel: CheckDetailViewModel = hiltViewModel()
+            CheckDetailScreen(
+                viewModel = detailViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        // 5. NOVA TELA: Detalhes de Comanda Paga (Leitura)
+        composable(
+            route = Screen.PaidCheckDetail.route,
+            arguments = listOf(navArgument("checkId") { type = NavType.IntType })
+        ) {
+            val paidViewModel: PaidCheckDetailViewModel = hiltViewModel()
+            PaidCheckDetailScreen(
+                viewModel = paidViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+    }
+}
+

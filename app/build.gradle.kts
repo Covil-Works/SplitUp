@@ -1,4 +1,4 @@
-plugins {
+﻿plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.thaicrew.splitup"
+    namespace = "com.covildev.splitup"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.thaicrew.splitup"
+        applicationId = "com.covildev.splitup"
         minSdk = 32
         targetSdk = 35
         versionCode = 1

@@ -10,23 +10,24 @@ data class PaidCheckDetailState(
     val isLoading: Boolean = true,
     val check: Check? = null,
 
-    // Dados para visualizaÃ§Ã£o
+    // Dados para visualização
     val itemsWithSharers: List<ItemWithSharers> = emptyList(),
-    val participants: List<Friend> = emptyList(), // NecessÃ¡rio para a aba "Por Pessoa"
+    val participants: List<Friend> = emptyList(), // Necessário para a aba "Por Pessoa"
 
     // Totais calculados
     val checkTotal: Long = 0L,
     val friendTotals: Map<Int, Long> = emptyMap(),
 
-    // Controle de VisualizaÃ§Ã£o
+    // Controle de Visualização
     val viewMode: CheckViewMode = CheckViewMode.ByItem,
 
-    // Controle de ExpansÃ£o (Apenas leitura)
+    // Controle de Expansão (Apenas leitura)
     val expandedItemId: Int? = null,
     val expandedFriendId: Int? = null,
     val expandedFriendOwedItems: List<FriendOwedItem> = emptyList(),
 
-    // Dialogs de AÃ§Ã£o
+    // Dialogs de Ação
     val showDeleteDialog: Boolean = false,
     val showReopenDialog: Boolean = false
 )
+

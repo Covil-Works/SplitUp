@@ -11,7 +11,7 @@ class PrepareCheckExportDataUseCase @Inject constructor(
     private val getParticipantsUseCase: GetParticipantsUseCase
 ) {
     suspend operator fun invoke(checkId: Int): CheckExportData {
-        val check = getCheckByIdUseCase(checkId) ?: throw Exception("Comanda nÃ£o encontrada")
+        val check = getCheckByIdUseCase(checkId) ?: throw Exception("Comanda não encontrada")
         val itemsWithSharers = getCheckItemsWithSharersUseCase(checkId).first()
         val participants = getParticipantsUseCase(checkId).first()
 
@@ -61,3 +61,4 @@ class PrepareCheckExportDataUseCase @Inject constructor(
         )
     }
 }
+

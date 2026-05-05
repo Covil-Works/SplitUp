@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import timber.log.Timber
 
-// Eventos de NavegaÃ§Ã£o
+// Eventos de Navegação
 sealed interface PaidCheckUiEvent {
     object NavigateBack : PaidCheckUiEvent
     data class ShareFile(val file: File) : PaidCheckUiEvent
@@ -73,7 +73,7 @@ class PaidCheckDetailViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    // --- LÃ³gica de VisualizaÃ§Ã£o ---
+    // --- Lógica de Visualização ---
     fun onChangeViewMode(mode: CheckViewMode) {
         _uiState.update { it.copy(viewMode = mode) }
     }
@@ -96,7 +96,7 @@ class PaidCheckDetailViewModel @Inject constructor(
         }
     }
 
-    // --- AÃ§Ãµes de Menu (Reabrir / Apagar) ---
+    // --- Ações de Menu (Reabrir / Apagar) ---
     fun onDeleteClicked() { _uiState.update { it.copy(showDeleteDialog = true) } }
     fun onReopenClicked() { _uiState.update { it.copy(showReopenDialog = true) } }
     fun onDismissDialogs() { _uiState.update { it.copy(showDeleteDialog = false, showReopenDialog = false) } }
@@ -115,11 +115,11 @@ class PaidCheckDetailViewModel @Inject constructor(
         onDismissDialogs()
         viewModelScope.launch {
             reopenCheckUseCase(check)
-            _uiEvent.emit(PaidCheckUiEvent.NavigateBack) // Volta para lista, pois ela saiu do histÃ³rico
+            _uiEvent.emit(PaidCheckUiEvent.NavigateBack) // Volta para lista, pois ela saiu do histórico
         }
     }
 
-    // --- Helpers de CÃ¡lculo (Podem ser movidos para UseCases se preferir, mantive aqui para agilizar) ---
+    // --- Helpers de Cálculo (Podem ser movidos para UseCases se preferir, mantive aqui para agilizar) ---
     private fun calculateFriendTotals(items: List<ItemWithSharers>): Map<Int, Long> {
         val totals = mutableMapOf<Int, Long>()
         items.forEach { entry ->
@@ -152,7 +152,7 @@ class PaidCheckDetailViewModel @Inject constructor(
             .toList()
     }
 
-    // --- ExportaÃ§Ã£o ---
+    // --- Exportação ---
     fun onExportClicked() {
         val currentCheck = uiState.value.check ?: return
 
@@ -175,4 +175,5 @@ class PaidCheckDetailViewModel @Inject constructor(
         }
     }
 }
+
 

@@ -70,7 +70,7 @@ import com.covildev.splitup.ui.theme.LightGreyText
 import timber.log.Timber
 
 /**
- * O ecrÃ£ principal que conecta o ViewModel Ã  UI.
+ * O ecrã principal que conecta o ViewModel à UI.
  */
 @Composable
 fun FriendScreen(
@@ -86,9 +86,9 @@ fun FriendScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showAddFriendDialog by remember { mutableStateOf(false) }
 
-    Timber.d("FriendScreen em recomposiÃ§Ã£o. DialogState: ${uiState.dialogState::class.simpleName}, Loading: ${uiState.isLoading}")
+    Timber.d("FriendScreen em recomposição. DialogState: ${uiState.dialogState::class.simpleName}, Loading: ${uiState.isLoading}")
 
-    // LÃ³gica para mostrar o Dialog de AdiÃ§Ã£o
+    // Lógica para mostrar o Dialog de Adição
     if (showAddFriendDialog) {
         AddFriendDialog(
             onDismiss = { showAddFriendDialog = false },
@@ -120,7 +120,7 @@ fun FriendScreen(
         }
     ) { paddingValues ->
 
-        // Gerenciamento dos Dialogs globais (DeleÃ§Ã£o, EdiÃ§Ã£o, ReativaÃ§Ã£o) vindos do ViewModel
+        // Gerenciamento dos Dialogs globais (Deleção, Edição, Reativação) vindos do ViewModel
         when (val dialogState = uiState.dialogState) {
             is DialogState.ConfirmDeactivation -> {
                 DeletionConfirmationDialog(
@@ -170,7 +170,7 @@ fun FriendScreen(
                 )
             }
             DialogState.Hidden -> {
-                // Nenhum log necessÃ¡rio quando o diÃ¡logo estÃ¡ oculto.
+                // Nenhum log necessário quando o diálogo está oculto.
             }
         }
 
@@ -203,8 +203,8 @@ fun FriendScreen(
 }
 
 /**
- * Dialog especÃ­fico para adicionar um novo amigo.
- * Segue o padrÃ£o visual do CheckScreen, mas abstraÃ­do em um componente para limpeza.
+ * Dialog específico para adicionar um novo amigo.
+ * Segue o padrão visual do CheckScreen, mas abstraído em um componente para limpeza.
  */
 @Composable
 private fun AddFriendDialog(
@@ -332,7 +332,7 @@ private fun FriendList(
     }
 }
 /**
- * Componente que exibe um Ãºnico item da lista de amigos.
+ * Componente que exibe um único item da lista de amigos.
  */
 @Composable
 private fun FriendListItem(
@@ -365,7 +365,7 @@ private fun FriendListItem(
                 )
                 Icon(
                     imageVector = Icons.Default.MoreVert,
-                    contentDescription = "AÃ§Ãµes do amigo"
+                    contentDescription = "Ações do amigo"
                 )
             }
 
@@ -420,7 +420,7 @@ private fun FriendListItem(
     }
 }
 
-// --- DIÃLOGOS DE CONFIRMAÃ‡ÃƒO DO VIEWMODEL (Mantidos como estavam) ---
+// --- DIÁLOGOS DE CONFIRMAÇÃO DO VIEWMODEL (Mantidos como estavam) ---
 
 @Composable
 private fun DeletionConfirmationDialog(
@@ -430,8 +430,8 @@ private fun DeletionConfirmationDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Confirmar exclusÃ£o?") },
-        text = { Text("VocÃª tem certeza que deseja apagar $friendName? Esse amigo nÃ£o poderÃ¡ ser adicionado em novas comandas.") },
+        title = { Text("Confirmar exclusão?") },
+        text = { Text("Você tem certeza que deseja apagar $friendName? Esse amigo não poderá ser adicionado em novas comandas.") },
         dismissButton = {
             TextButton(
                 onClick = onDismiss,
@@ -458,11 +458,11 @@ private fun ReactivationConfirmationDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Confirmar reativaÃ§Ã£o?") },
-        text = { Text("O amigo '$friendName' jÃ¡ existe mas estÃ¡ desativado. Deseja reativÃ¡-lo?") },
+        title = { Text("Confirmar reativação?") },
+        text = { Text("O amigo '$friendName' já existe mas está desativado. Deseja reativá-lo?") },
         dismissButton = {
             Button(onClick = onDismiss) {
-                Text("NÃ£o")
+                Text("Não")
             }
         },
         confirmButton = {
@@ -533,13 +533,13 @@ private fun CannotDeleteDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("NÃ£o Ã© possÃ­vel remover") },
+        title = { Text("Não é possível remover") },
         text = {
             Column {
-                Text("O amigo '$friendName' estÃ¡ nas seguintes comandas abertas:")
+                Text("O amigo '$friendName' está nas seguintes comandas abertas:")
                 Spacer(modifier = Modifier.height(8.dp))
                 checkNames.forEach { name ->
-                    Text("â€¢ $name", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                    Text("• $name", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text("Remova-o das comandas antes de excluir.")
@@ -563,7 +563,7 @@ private fun HardDeleteConfirmationDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Excluir permanentemente?") },
-        text = { Text("VocÃª tem certeza que deseja apagar $friendName? Esse amigo nÃ£o poderÃ¡ ser adicionado em novas comandas") },
+        text = { Text("Você tem certeza que deseja apagar $friendName? Esse amigo não poderá ser adicionado em novas comandas") },
         dismissButton = {
             TextButton(
                 onClick = onDismiss,
@@ -585,5 +585,6 @@ private fun HardDeleteConfirmationDialog(
         }
     )
 }
+
 
 

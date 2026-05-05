@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -43,6 +42,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
@@ -221,7 +221,7 @@ private fun AppDrawerContent(
                 .padding(horizontal = 20.dp, vertical = 24.dp)
         ) {
             Text(
-                text = "InformaÃ§Ãµes",
+                text = "Informações",
                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -507,8 +507,8 @@ fun AppBottomNavigation(navController: NavHostController) {
         tonalElevation = 0.dp,
         modifier = Modifier
             .fillMaxWidth()
-            .height(100.dp),
-        windowInsets = WindowInsets(0.dp)
+            .heightIn(min = 100.dp),
+        windowInsets = NavigationBarDefaults.windowInsets
     ) {
         items.forEach { screen ->
             val isSelected = when (screen) {
@@ -554,6 +554,7 @@ fun AppBottomNavigation(navController: NavHostController) {
         }
     }
 }
+
 
 
 

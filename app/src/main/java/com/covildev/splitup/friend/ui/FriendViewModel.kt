@@ -47,7 +47,7 @@ class FriendViewModel @Inject constructor(
     }
 
     private fun observeFriends() {
-        Timber.d("Iniciando observaÃ§Ã£o do fluxo de amigos ativos.")
+        Timber.d("Iniciando observação do fluxo de amigos ativos.")
         getActiveFriendsUseCase()
             .onEach { friends ->
                 Timber.d("Fluxo de amigos emitiu uma nova lista com ${friends.size} amigos.")
@@ -71,7 +71,7 @@ class FriendViewModel @Inject constructor(
                 }
 
                 is AddFriendResult.NeedsReactivation -> {
-                    Timber.d("Caso de uso 'addFriend' retornou NeedsReactivation. Atualizando estado para mostrar diÃ¡logo.")
+                    Timber.d("Caso de uso 'addFriend' retornou NeedsReactivation. Atualizando estado para mostrar diálogo.")
                     _uiState.update { it.copy(dialogState = DialogState.ConfirmReactivation(result.friend)) }
                 }
 
@@ -88,15 +88,15 @@ class FriendViewModel @Inject constructor(
         viewModelScope.launch {
             when (val status = analyzeFriendDeletionUseCase(friend.id)) {
                 is FriendDeletionStatus.Blocked -> {
-                    Timber.w("ExclusÃ£o bloqueada. Comandas abertas encontradas.")
+                    Timber.w("Exclusão bloqueada. Comandas abertas encontradas.")
                     _uiState.update { it.copy(dialogState = DialogState.CannotDelete(friend, status.checkNames)) }
                 }
                 FriendDeletionStatus.RequiresSoftDelete -> {
-                    Timber.d("HistÃ³rico encontrado. Requer Soft Delete.")
+                    Timber.d("Histórico encontrado. Requer Soft Delete.")
                     _uiState.update { it.copy(dialogState = DialogState.ConfirmDeactivation(friend)) }
                 }
                 FriendDeletionStatus.SafeHardDelete -> {
-                    Timber.d("Sem histÃ³rico. Permitindo Hard Delete.")
+                    Timber.d("Sem histórico. Permitindo Hard Delete.")
                     _uiState.update { it.copy(dialogState = DialogState.ConfirmHardDelete(friend)) }
                 }
             }
@@ -117,7 +117,7 @@ class FriendViewModel @Inject constructor(
     }
 
     fun onDialogDismiss() {
-        Timber.d("Evento 'onDialogDismiss' recebido. Ocultando diÃ¡logo.")
+        Timber.d("Evento 'onDialogDismiss' recebido. Ocultando diálogo.")
         _uiState.update { it.copy(dialogState = DialogState.Hidden) }
     }
 
@@ -148,10 +148,10 @@ class FriendViewModel @Inject constructor(
                         Timber.d("Soft delete do amigo ID ${friendToDelete.id} bem-sucedido.")
                     }
                     is SoftDeleteFriendUseCaseResult.FriendNotFound -> {
-                        Timber.w("Soft delete falhou: amigo ID ${friendToDelete.id} nÃ£o encontrado.")
+                        Timber.w("Soft delete falhou: amigo ID ${friendToDelete.id} não encontrado.")
                     }
                     is SoftDeleteFriendUseCaseResult.AlreadyInactive -> {
-                        Timber.d("Soft delete para o amigo ID ${friendToDelete.id} nÃ£o foi necessÃ¡rio, jÃ¡ estava inativo.")
+                        Timber.d("Soft delete para o amigo ID ${friendToDelete.id} não foi necessário, já estava inativo.")
                     }
                 }
             }
@@ -170,7 +170,7 @@ class FriendViewModel @Inject constructor(
         viewModelScope.launch {
             when (val result = updateFriendUseCase(friend, newName)) {
                 is UpdateFriendResult.Success -> {
-                    Timber.d("AtualizaÃ§Ã£o do amigo ID ${friend.id} bem-sucedida.")
+                    Timber.d("Atualização do amigo ID ${friend.id} bem-sucedida.")
                     onDialogDismiss()
                 }
                 is UpdateFriendResult.Error -> {
@@ -180,3 +180,4 @@ class FriendViewModel @Inject constructor(
         }
     }
 }
+

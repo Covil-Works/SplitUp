@@ -36,9 +36,9 @@ class CheckRepositoryImpl @Inject constructor(
             // Se for novo (ID 0), insere e retorna o NOVO ID gerado pelo banco
             dao.insertCheck(entity)
         } else {
-            // Se jÃ¡ existe, atualiza
+            // Se já existe, atualiza
             dao.updateCheck(entity)
-            // Retorna o ID que jÃ¡ existia no objeto
+            // Retorna o ID que já existia no objeto
             check.id.toLong()
         }
     }
@@ -90,3 +90,4 @@ class CheckRepositoryImpl @Inject constructor(
     }
 
 }
+

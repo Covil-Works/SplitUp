@@ -20,7 +20,7 @@ class ItemRepositoryImpl @Inject constructor(
         return if (item.id == 0) {
             itemDao.insertItem(entity)
         } else {
-            // IMPORTANTE: nÃ£o usar REPLACE em update, pois ele faz DELETE+INSERT e dispara CASCADE.
+            // IMPORTANTE: não usar REPLACE em update, pois ele faz DELETE+INSERT e dispara CASCADE.
             itemDao.updateItem(entity)
             item.id.toLong()
         }
@@ -53,3 +53,4 @@ class ItemRepositoryImpl @Inject constructor(
         return itemDao.countItemsForCheck(checkId) > 0
     }
 }
+

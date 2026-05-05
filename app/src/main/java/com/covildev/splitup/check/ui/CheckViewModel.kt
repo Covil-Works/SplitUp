@@ -57,7 +57,7 @@ class CheckViewModel @Inject constructor(
     }
 
     private fun observeChecks() {
-        Timber.d("Iniciando observaÃ§Ã£o de comandas abertas.")
+        Timber.d("Iniciando observação de comandas abertas.")
         getOpenChecksUseCase()
             .onEach { checks ->
                 _uiState.update { it.copy(checks = checks, isLoading = false) }
@@ -127,7 +127,7 @@ class CheckViewModel @Inject constructor(
                         _confirmationState.value = check to action
                     } else {
                         _uiState.update {
-                            it.copy(infoDialogMessage = "NÃ£o Ã© possÃ­vel fechar a comanda '${check.name}' porque ela nÃ£o possui nenhum item adicionado.")
+                            it.copy(infoDialogMessage = "Não é possível fechar a comanda '${check.name}' porque ela não possui nenhum item adicionado.")
                         }
                     }
                 }
@@ -159,7 +159,7 @@ class CheckViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Erro ao executar aÃ§Ã£o na comanda.")
+                Timber.e(e, "Erro ao executar ação na comanda.")
             } finally {
                 _confirmationState.value = null
             }
@@ -191,4 +191,5 @@ class CheckViewModel @Inject constructor(
     }
 
 }
+
 

@@ -6,7 +6,7 @@ import com.covildev.splitup.check.domain.CheckStatus
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-/* Recupera todas as comandas pagas (HistÃ³rico) */
+/* Recupera todas as comandas pagas (Histórico) */
 class GetPaidChecksUseCase @Inject constructor(
     private val repository: CheckRepository
 ) {
@@ -14,3 +14,4 @@ class GetPaidChecksUseCase @Inject constructor(
         return repository.getChecksByStatus(CheckStatus.PAID)
     }
 }
+

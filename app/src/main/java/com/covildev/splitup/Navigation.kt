@@ -26,7 +26,7 @@ import com.covildev.splitup.history.ui.PaidCheckDetailViewModel
 sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
     object Checks : Screen("checks_list", "Comandas", Icons.AutoMirrored.Filled.ReceiptLong)
     object Friends : Screen("friends_list", "Amigos", Icons.Default.People)
-    object History : Screen("history_list", "HistÃ³rico", Icons.Default.History)
+    object History : Screen("history_list", "Histórico", Icons.Default.History)
     object CheckDetail : Screen("check_detail/{checkId}", "Detalhes", Icons.AutoMirrored.Filled.ReceiptLong) {
         fun createRoute(checkId: Int) = "check_detail/$checkId"
     }
@@ -50,7 +50,7 @@ fun AppNavHost(
             CheckScreen(
                 viewModel = checkViewModel,
                 onNavigateToCreate = { id ->
-                    // Evita navegaÃ§Ã£o duplicada: sÃ³ navega se ainda estiver na tela de lista
+                    // Evita navegação duplicada: só navega se ainda estiver na tela de lista
                     val currentRoute = navController.currentBackStackEntry?.destination?.route
                     if (currentRoute == Screen.Checks.route) {
                         navController.navigate(Screen.CheckDetail.createRoute(id)) {
@@ -66,13 +66,13 @@ fun AppNavHost(
             FriendScreen(viewModel = friendViewModel)
         }
 
-        // 3. Tela de HistÃ³rico
+        // 3. Tela de Histórico
         composable(Screen.History.route) {
             val historyViewModel: HistoryViewModel = hiltViewModel()
             HistoryScreen(
                 viewModel = historyViewModel,
                 onCheckClick = { id ->
-                    // Evita navegaÃ§Ã£o duplicada: sÃ³ navega se ainda estiver na tela de histÃ³rico
+                    // Evita navegação duplicada: só navega se ainda estiver na tela de histórico
                     val currentRoute = navController.currentBackStackEntry?.destination?.route
                     if (currentRoute == Screen.History.route) {
                         navController.navigate(Screen.PaidCheckDetail.createRoute(id)) {
@@ -83,7 +83,7 @@ fun AppNavHost(
             )
         }
 
-        // 4. Detalhes de Comanda Aberta (EdiÃ§Ã£o)
+        // 4. Detalhes de Comanda Aberta (Edição)
         composable(
             route = Screen.CheckDetail.route,
             arguments = listOf(navArgument("checkId") { type = NavType.IntType })
@@ -108,4 +108,5 @@ fun AppNavHost(
         }
     }
 }
+
 

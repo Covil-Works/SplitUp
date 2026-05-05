@@ -123,7 +123,7 @@ private fun HistoryList(
 @Composable
 private fun HistoryListItem(check: Check, onClick: () -> Unit) {
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()) }
-    // Usando a data de fechamento se existir, senÃ£o a de criaÃ§Ã£o
+    // Usando a data de fechamento se existir, senão a de criação
     val dateToUse = check.closingDate ?: check.creationDate
     val dateString = dateFormatter.format(Date(dateToUse))
 
@@ -159,5 +159,6 @@ private fun HistoryListItem(check: Check, onClick: () -> Unit) {
         }
     }
 }
+
 
 

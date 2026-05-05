@@ -7,12 +7,12 @@ class UpdateNameCheckUseCase @Inject constructor(
     private val repository: CheckRepository
 ) {
     suspend operator fun invoke(check: Check, newName: String): UpdateCheckResult {
-        Timber.i("Iniciando atualizaÃ§Ã£o da comanda ID: ${check.id} para o nome: '$newName'")
+        Timber.i("Iniciando atualização da comanda ID: ${check.id} para o nome: '$newName'")
         val trimmedName = newName.trim()
 
         if (trimmedName.isBlank()) {
-            Timber.w("Falha na validaÃ§Ã£o: o novo nome da comanda estÃ¡ vazio.")
-            return UpdateCheckResult.Error("O nome da comanda nÃ£o pode estar vazio.")
+            Timber.w("Falha na validação: o novo nome da comanda está vazio.")
+            return UpdateCheckResult.Error("O nome da comanda não pode estar vazio.")
         }
 
         return try {
@@ -28,9 +28,10 @@ class UpdateNameCheckUseCase @Inject constructor(
 }
 
 /*
- Interface selada para representar os resultados da operaÃ§Ã£o, garantindo um tratamento seguro na ViewModel.
+ Interface selada para representar os resultados da operação, garantindo um tratamento seguro na ViewModel.
 */
 sealed interface UpdateCheckResult {
     data object Success : UpdateCheckResult
     data class Error(val message: String) : UpdateCheckResult
 }
+

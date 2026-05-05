@@ -14,7 +14,7 @@ class AnalyzeFriendDeletionUseCase @Inject constructor(
             return FriendDeletionStatus.Blocked(openChecks.map { it.name })
         }
 
-        // 2. Verifica histÃ³rico (Qualquer participaÃ§Ã£o) de forma eficiente
+        // 2. Verifica histórico (Qualquer participação) de forma eficiente
         val hasHistory = checkRepository.hasAnyParticipation(friendId)
 
         return if (hasHistory) {
@@ -30,3 +30,4 @@ sealed interface FriendDeletionStatus {
     object RequiresSoftDelete : FriendDeletionStatus
     object SafeHardDelete : FriendDeletionStatus
 }
+

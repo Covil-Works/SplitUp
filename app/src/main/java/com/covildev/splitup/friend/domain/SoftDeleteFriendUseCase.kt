@@ -12,16 +12,16 @@ class SoftDeleteFriendUseCase @Inject constructor(
         val friendToDeactivate = repository.findFriendById(id)
 
         if (friendToDeactivate == null) {
-            Timber.w("Tentativa de desativar um amigo que nÃ£o foi encontrado com o ID: $id.")
+            Timber.w("Tentativa de desativar um amigo que não foi encontrado com o ID: $id.")
             return SoftDeleteFriendUseCaseResult.FriendNotFound
         }
 
         if (!friendToDeactivate.isActive) {
-            Timber.d("Amigo '${friendToDeactivate.name}' jÃ¡ estava inativo. Nenhuma aÃ§Ã£o necessÃ¡ria.")
+            Timber.d("Amigo '${friendToDeactivate.name}' já estava inativo. Nenhuma ação necessária.")
             return SoftDeleteFriendUseCaseResult.AlreadyInactive
         }
 
-        Timber.d("Amigo '${friendToDeactivate.name}' encontrado e ativo. Procedendo com a desativaÃ§Ã£o.")
+        Timber.d("Amigo '${friendToDeactivate.name}' encontrado e ativo. Procedendo com a desativação.")
         repository.deactivateFriend(id)
         return SoftDeleteFriendUseCaseResult.Success
     }
@@ -32,3 +32,4 @@ sealed interface SoftDeleteFriendUseCaseResult {
     data object FriendNotFound : SoftDeleteFriendUseCaseResult
     data object AlreadyInactive : SoftDeleteFriendUseCaseResult
 }
+

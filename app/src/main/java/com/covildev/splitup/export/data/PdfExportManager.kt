@@ -17,7 +17,7 @@ class PdfExportManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     fun generateCheckPdf(data: CheckExportData): File {
-        // Aumentei a altura da pÃ¡gina para garantir que caiba tudo
+        // Aumentei a altura da página para garantir que caiba tudo
         val pageInfo = PdfDocument.PageInfo.Builder(300, 800, 1).create()
         val pdfDocument = PdfDocument()
         val page = pdfDocument.startPage(pageInfo)
@@ -25,7 +25,7 @@ class PdfExportManager @Inject constructor(
         val paint = Paint()
         var y = 40f
 
-        // --- 1. CABEÃ‡ALHO ---
+        // --- 1. CABEÇALHO ---
         paint.textSize = 18f
         paint.isFakeBoldText = true
         canvas.drawText("SplitUp", 20f, y, paint)
@@ -39,9 +39,9 @@ class PdfExportManager @Inject constructor(
         paint.textSize = 10f
         paint.color = 0xFF666666.toInt() // Cinza escuro
 
-        // FormataÃ§Ã£o visual da data (dentro do PDF)
+        // Formatação visual da data (dentro do PDF)
         val dateObj = Date(data.check.creationDate)
-        val visualDateFormat = SimpleDateFormat("dd/MM/yyyy 'Ã s' HH:mm", Locale("pt", "BR"))
+        val visualDateFormat = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale("pt", "BR"))
         canvas.drawText(visualDateFormat.format(dateObj), 20f, y, paint)
 
         paint.color = 0xFF000000.toInt() // Preto
@@ -117,7 +117,7 @@ class PdfExportManager @Inject constructor(
         y += 18f
         paint.textSize = 11f
         paint.color = 0xFF555555.toInt()
-        canvas.drawText("ServiÃ§o (10%):", 20f, y, paint)
+        canvas.drawText("Serviço (10%):", 20f, y, paint)
         val servText = "R$ ${String.format("%.2f", data.serviceFee / 100.0)}"
         canvas.drawText(servText, 280f - paint.measureText(servText), y, paint)
 
@@ -136,11 +136,11 @@ class PdfExportManager @Inject constructor(
         val exportDir = File(context.cacheDir, "export")
         if (!exportDir.exists()) exportDir.mkdirs()
 
-        // 1. Sanitiza o nome (troca espaÃ§o por _ e remove caracteres estranhos)
+        // 1. Sanitiza o nome (troca espaço por _ e remove caracteres estranhos)
         val safeCheckName = data.check.name
             .replace(" ", "_")
             .replace(Regex("[^a-zA-Z0-9_\\-]"), "")
-            .take(30) // Limita tamanho para nÃ£o ficar gigante
+            .take(30) // Limita tamanho para não ficar gigante
 
         // 2. Formata a data para arquivo (yyyyMMdd)
         val fileDateFormat = SimpleDateFormat("yyyyMMdd", Locale.US)
@@ -151,7 +151,7 @@ class PdfExportManager @Inject constructor(
 
         val file = File(exportDir, fileName)
 
-        // Se o arquivo jÃ¡ existir, deleta para criar o novo
+        // Se o arquivo já existir, deleta para criar o novo
         if (file.exists()) file.delete()
 
         pdfDocument.writeTo(FileOutputStream(file))
@@ -160,3 +160,4 @@ class PdfExportManager @Inject constructor(
         return file
     }
 }
+

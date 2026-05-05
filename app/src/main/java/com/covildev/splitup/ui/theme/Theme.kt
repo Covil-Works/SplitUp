@@ -49,9 +49,9 @@ private val DarkColorScheme = darkColorScheme(
 
 @Composable
 fun SplitUpTheme(
-    // MantÃ©m o tema escuro como padrÃ£o.
+    // Mantém o tema escuro como padrão.
     darkTheme: Boolean = true,
-    // MantÃ©m desativado para nÃ£o sobrescrever a identidade visual.
+    // Mantém desativado para não sobrescrever a identidade visual.
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
@@ -61,4 +61,5 @@ fun SplitUpTheme(
         content = content
     )
 }
+
 

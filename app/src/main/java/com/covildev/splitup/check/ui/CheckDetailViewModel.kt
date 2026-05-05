@@ -74,7 +74,7 @@ class CheckDetailViewModel @Inject constructor(
         getCheckItemsWithSharersUseCase(checkId)
             .onEach { itemsWithSharers ->
 
-                // 1. Calcula os totais por amigo em memÃ³ria
+                // 1. Calcula os totais por amigo em memória
                 val totalsMap = calculateFriendTotals(itemsWithSharers)
                 val totalCheckValue = calculateCheckTotalUseCase(itemsWithSharers.map { it.item })
 
@@ -145,7 +145,7 @@ class CheckDetailViewModel @Inject constructor(
                     currentSelection.size == allParticipantsIds.size
 
             if (isFullSelection) {
-                // Retorno automÃ¡tico ao estado TODOS
+                // Retorno automático ao estado TODOS
                 state.copy(
                     isAllSelected = true,
                     selectedFriendIdsForItem = emptySet() // Limpa o set pois a flag manda
@@ -197,7 +197,7 @@ class CheckDetailViewModel @Inject constructor(
                     )
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Erro ao carregar amigos disponÃ­veis")
+                Timber.e(e, "Erro ao carregar amigos disponíveis")
             }
         }
     }
@@ -212,21 +212,21 @@ class CheckDetailViewModel @Inject constructor(
     fun onRemoveParticipant(friendId: Int) {
         val state = uiState.value
 
-        // 1. Verifica se o amigo estÃ¡ na lista de pagantes de ALGUM item da comanda
+        // 1. Verifica se o amigo está na lista de pagantes de ALGUM item da comanda
         val isSharingAnyItem = state.itemsWithSharers.any { it.sharersIds.contains(friendId) }
 
         if (isSharingAnyItem) {
             // 2. Pega o nome para exibir na mensagem (UX melhor)
             val friendName = state.participants.find { it.id == friendId }?.name ?: "esse participante"
 
-            // 3. Aborta a remoÃ§Ã£o e mostra dialog informativo
+            // 3. Aborta a remoção e mostra dialog informativo
             _uiState.update {
-                it.copy(infoDialogMessage = "NÃ£o Ã© possÃ­vel remover o amigo $friendName porque ele jÃ¡ divide um item nesta comanda.")
+                it.copy(infoDialogMessage = "Não é possível remover o amigo $friendName porque ele já divide um item nesta comanda.")
             }
             return
         }
 
-        // 4. Se nÃ£o estiver dividindo nada, prossegue com a remoÃ§Ã£o
+        // 4. Se não estiver dividindo nada, prossegue com a remoção
         viewModelScope.launch {
             removeParticipantUseCase(checkId, friendId)
         }
@@ -265,7 +265,7 @@ class CheckDetailViewModel @Inject constructor(
             state.selectedFriendIdsForItem.toList()
         }
 
-        // ValidaÃ§Ãµes
+        // Validações
         if (state.newItemName.isBlank()) return
         if (valueInCents <= 0) {
             return
@@ -299,7 +299,7 @@ class CheckDetailViewModel @Inject constructor(
                     newItemQuantity = 1,
                     newItemValue = "",
                     selectedFriendIdsForItem = emptySet(),
-                    isAllSelected = true // Volta para o padrÃ£o
+                    isAllSelected = true // Volta para o padrão
                 )}
 
             } catch (e: Exception) {
@@ -318,7 +318,7 @@ class CheckDetailViewModel @Inject constructor(
     }
 
     fun onExpandItem(itemId: Int) {
-        // Se clicar no mesmo que jÃ¡ tÃ¡ aberto, fecha. Se nÃ£o, abre o novo.
+        // Se clicar no mesmo que já tá aberto, fecha. Se não, abre o novo.
         _uiState.update { state ->
             if (state.expandedItemId == itemId) {
                 state.copy(expandedItemId = null, isEditing = false)
@@ -330,20 +330,20 @@ class CheckDetailViewModel @Inject constructor(
 
     fun onStartEditItem(itemWithSharers: ItemWithSharers) {
         val item = itemWithSharers.item
-        // editingValue Ã© em REAIS (string), para ser compatÃ­vel com parseToCents()
+        // editingValue é em REAIS (string), para ser compatível com parseToCents()
         val valueString = CurrencyUtils.formatFromCents(item.valueInCents)
         val sharersSnapshot = itemWithSharers.sharersIds.toSet()
 
         _uiState.update {
             it.copy(
                 isEditing = true,
-                // Carrega explicitamente os dados atuais do item para o formulÃ¡rio
+                // Carrega explicitamente os dados atuais do item para o formulário
                 editingName = item.name,
                 editingQuantity = item.quantity,
                 editingValue = valueString,
-                // IMPORTANTe: mantÃ©m os pagantes preenchidos para o save
+                // IMPORTANTe: mantém os pagantes preenchidos para o save
                 editingSharers = sharersSnapshot,
-                // Snapshot para comparaÃ§Ã£o/fallback
+                // Snapshot para comparação/fallback
                 originalEditingSharers = sharersSnapshot
             )
         }
@@ -396,13 +396,13 @@ class CheckDetailViewModel @Inject constructor(
         // Tratamento do valor (String -> Long)
         val valueInCents = CurrencyUtils.parseToCents(state.editingValue)
 
-        // ValidaÃ§Ã£o bÃ¡sica
+        // Validação básica
         if (state.editingName.isBlank()) return
         if (valueInCents <= 0) {
             return
         }
 
-        // Fallback robusto: se por qualquer motivo o set vier vazio, nÃ£o zera pagantes
+        // Fallback robusto: se por qualquer motivo o set vier vazio, não zera pagantes
         val effectiveSharers = when {
             state.editingSharers.isNotEmpty() -> state.editingSharers
             state.originalEditingSharers.isNotEmpty() -> state.originalEditingSharers
@@ -427,19 +427,19 @@ class CheckDetailViewModel @Inject constructor(
                 val oldSharers = originalEntry.sharersIds.toSet()
                 val newSharers = effectiveSharers
 
-                // Quem entrou na divisÃ£o?
+                // Quem entrou na divisão?
                 val toAdd = newSharers - oldSharers
                 toAdd.forEach { friendId ->
                     toggleItemShareUseCase(itemId, friendId, checkId, isShared = true)
                 }
 
-                // Quem saiu da divisÃ£o?
+                // Quem saiu da divisão?
                 val toRemove = oldSharers - newSharers
                 toRemove.forEach { friendId ->
                     toggleItemShareUseCase(itemId, friendId, checkId, isShared = false)
                 }
 
-                // 3. Fecha o modo de ediÃ§Ã£o
+                // 3. Fecha o modo de edição
                 onCollapseItem()
 
             } catch (e: Exception) {
@@ -455,10 +455,10 @@ class CheckDetailViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                // Ao deletar o item, o Room (Cascade) jÃ¡ remove as relaÃ§Ãµes de share automaticamente.
+                // Ao deletar o item, o Room (Cascade) já remove as relações de share automaticamente.
                 deleteItemUseCase(originalEntry.item)
 
-                // Fecha o modo de ediÃ§Ã£o
+                // Fecha o modo de edição
                 onCollapseItem()
 
             } catch (e: Exception) {
@@ -471,7 +471,7 @@ class CheckDetailViewModel @Inject constructor(
         if (uiState.value.items.isEmpty()) {
             return
         }
-        // Se tiver itens, prossegue com o fluxo normal (abrir diÃ¡logo)
+        // Se tiver itens, prossegue com o fluxo normal (abrir diálogo)
         _uiState.update { it.copy(showCloseCheckDialog = true) }
     }
 
@@ -482,7 +482,7 @@ class CheckDetailViewModel @Inject constructor(
     fun onCloseCheckConfirmed() {
         val currentCheck = uiState.value.check ?: return
 
-        // Fecha o diÃ¡logo imediatamente
+        // Fecha o diálogo imediatamente
         onDismissCloseCheckDialog()
 
         viewModelScope.launch {
@@ -490,7 +490,7 @@ class CheckDetailViewModel @Inject constructor(
                 // Chama o UseCase criado no Passo 1
                 closeCheckUseCase(currentCheck)
 
-                // Sucesso: Notifica o usuÃ¡rio e volta para a tela anterior
+                // Sucesso: Notifica o usuário e volta para a tela anterior
                 _uiEvent.emit(CheckDetailUiEvent.NavigateBack)
             } catch (e: Exception) {
                 Timber.e(e, "Erro ao fechar comanda")
@@ -520,9 +520,9 @@ class CheckDetailViewModel @Inject constructor(
         friendId: Int,
         items: List<ItemWithSharers>
     ): List<FriendOwedItem> {
-        // Regra: cada item Ã© dividido igualmente entre os sharers.
-        // O valor do amigo = (valor unitÃ¡rio * quantidade) / N
-        // Considera a multiplicaÃ§Ã£o (quantidade) no total.
+        // Regra: cada item é dividido igualmente entre os sharers.
+        // O valor do amigo = (valor unitário * quantidade) / N
+        // Considera a multiplicação (quantidade) no total.
         return items
             .asSequence()
             .filter { it.sharersIds.contains(friendId) }
@@ -545,5 +545,6 @@ class CheckDetailViewModel @Inject constructor(
             .toList()
     }
 }
+
 
 

@@ -11,7 +11,7 @@ class AddFriendUseCase @Inject constructor(private val repository: FriendReposit
 
         if (trimmedName.isBlank()) {
             Timber.w("Tentativa de adicionar amigo com nome vazio.")
-            return AddFriendResult.Error(InvalidFriendNameException("O nome do amigo nÃ£o pode ser vazio."))
+            return AddFriendResult.Error(InvalidFriendNameException("O nome do amigo não pode ser vazio."))
         }
 
         return try {
@@ -24,10 +24,10 @@ class AddFriendUseCase @Inject constructor(private val repository: FriendReposit
                 Timber.i("Amigo '$trimmedName' adicionado com sucesso.")
                 AddFriendResult.Success
             } else if (existingFriend.isActive) {
-                Timber.d("Amigo '${existingFriend.name}' jÃ¡ existe e estÃ¡ ativo.")
+                Timber.d("Amigo '${existingFriend.name}' já existe e está ativo.")
                 AddFriendResult.AlreadyExistsActive(existingFriend)
             } else {
-                Timber.d("Amigo '${existingFriend.name}' jÃ¡ existe, mas estÃ¡ inativo. Sugerindo reativaÃ§Ã£o.")
+                Timber.d("Amigo '${existingFriend.name}' já existe, mas está inativo. Sugerindo reativação.")
                 AddFriendResult.NeedsReactivation(existingFriend)
             }
         } catch (e: Exception) {
@@ -43,3 +43,4 @@ sealed class AddFriendResult {
     data class NeedsReactivation(val friend: Friend) : AddFriendResult()
     data class Error(val exception: Exception) : AddFriendResult()
 }
+

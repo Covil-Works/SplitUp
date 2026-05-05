@@ -13,7 +13,7 @@ class FriendRepositoryImpl @Inject constructor(
     override fun getActiveFriends(): Flow<List<Friend>> {
         Timber.d("Solicitando fluxo de amigos ativos do DAO.")
         return dao.getActiveFriends().map { friendEntities ->
-            Timber.d("Mapeando ${friendEntities.size} entidades de amigo para o domÃ­nio.")
+            Timber.d("Mapeando ${friendEntities.size} entidades de amigo para o domínio.")
             friendEntities.map { entity -> entity.toDomain() }
         }
     }
@@ -39,12 +39,12 @@ class FriendRepositoryImpl @Inject constructor(
     }
 
     override suspend fun isFriendActive(id: Int): Boolean {
-        Timber.d("Verificando no DAO se o amigo com ID $id estÃ¡ ativo.")
+        Timber.d("Verificando no DAO se o amigo com ID $id está ativo.")
         return dao.isFriendActive(id)
     }
 
     override suspend fun deactivateFriend(id: Int) {
-        Timber.d("Solicitando ao DAO a desativaÃ§Ã£o do amigo com ID: $id")
+        Timber.d("Solicitando ao DAO a desativação do amigo com ID: $id")
         dao.deactivateFriend(id)
     }
 
@@ -54,3 +54,4 @@ class FriendRepositoryImpl @Inject constructor(
     }
 
 }
+

@@ -139,7 +139,7 @@ fun CheckScreen(
     uiState.infoDialogMessage?.let { message ->
         AlertDialog(
             onDismissRequest = { viewModel.onDismissInfoDialog() },
-            title = { Text(text = "AtenÃ§Ã£o") },
+            title = { Text(text = "Atenção") },
             text = { Text(text = message) },
             confirmButton = {
                 Button(onClick = { viewModel.onDismissInfoDialog() }) { Text("Ok") }
@@ -150,7 +150,7 @@ fun CheckScreen(
     confirmationState?.let { (check, action) ->
         val title = if (action == CheckViewModel.SwipeAction.DELETE) "Excluir Comanda?" else "Fechar Comanda?"
         val message = if (action == CheckViewModel.SwipeAction.DELETE) {
-            "Tem certeza que deseja excluir '${check.name}'? Isso nÃ£o pode ser desfeito."
+            "Tem certeza que deseja excluir '${check.name}'? Isso não pode ser desfeito."
         } else {
             "Deseja encerrar a comanda '${check.name}'?"
         }
@@ -445,7 +445,7 @@ private fun CheckListItem(
                     ) {
                         Icon(
                             imageVector = Icons.Default.DateRange,
-                            contentDescription = "Data de criaÃ§Ã£o",
+                            contentDescription = "Data de criação",
                             modifier = Modifier.size(14.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -475,7 +475,7 @@ private fun CheckListItem(
                     }
 
                     Text(
-                        text = "Total atÃ© agora: R$ $totalFormatted",
+                        text = "Total até agora: R$ $totalFormatted",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.SemiBold
@@ -522,4 +522,5 @@ private fun CheckListItem(
         }
     }
 }
+
 

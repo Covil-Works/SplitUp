@@ -2,7 +2,7 @@
 
 import javax.inject.Inject
 
-/* Adiciona um item Ã  comanda */
+/* Adiciona um item à comanda */
 
 data class AddItemUseCase @Inject constructor(
     private val repository: ItemRepository
@@ -13,9 +13,9 @@ data class AddItemUseCase @Inject constructor(
         itemQuantity: Int,
         itemValueInCents: Long
     ) : Long {
-        if (itemName.isBlank()) throw IllegalArgumentException("O item deve ter um nome vÃ¡lido.")
+        if (itemName.isBlank()) throw IllegalArgumentException("O item deve ter um nome válido.")
         if (itemQuantity <= 0) throw IllegalArgumentException("A quantidade do item deve ser maior que zero.")
-        if (itemValueInCents < 0) throw IllegalArgumentException("O valor do item nÃ£o pode ser negativo.")
+        if (itemValueInCents < 0) throw IllegalArgumentException("O valor do item não pode ser negativo.")
 
         val newItem = Item(
             id = 0,
@@ -27,4 +27,5 @@ data class AddItemUseCase @Inject constructor(
         return repository.saveItem(newItem)
     }
 }
+
 

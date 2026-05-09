@@ -14,7 +14,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -23,16 +25,18 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.text.KeyboardActions
 import com.covildev.splitup.check.domain.ItemWithSharers
 import com.covildev.splitup.friend.domain.Friend
 import com.covildev.splitup.ui.theme.SurfaceBlueGrey
@@ -88,7 +92,9 @@ fun CheckDetailScreen(
         SelectFriendsBottomSheet(
             availableFriends = uiState.availableFriends,
             onDismiss = { viewModel.onDismissBottomSheet() },
-            onConfirm = { ids -> viewModel.onConfirmParticipants(ids) }
+            onSelectFriend = { friendId -> viewModel.onSelectAvailableFriend(friendId) },
+            onConfirm = { viewModel.onDismissBottomSheet() },
+            onAddNewFriend = { name -> viewModel.onAddFriendFromBottomSheet(name) }
         )
     }
 
@@ -285,13 +291,24 @@ fun CheckDetailScreen(
 fun SelectFriendsBottomSheet(
     availableFriends: List<com.covildev.splitup.friend.domain.Friend>,
     onDismiss: () -> Unit,
-    onConfirm: (List<Int>) -> Unit
+    onSelectFriend: (Int) -> Unit,
+    onConfirm: () -> Unit,
+    onAddNewFriend: (String) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
     val configuration = LocalConfiguration.current
     val maxSheetHeight = configuration.screenHeightDp.dp * 0.7f
-    // Lista temporaria para guardar os IDs selecionados no sheet
-    val selectedIds = remember { mutableStateListOf<Int>() }
+    var showAddFriendDialog by remember { mutableStateOf(false) }
+
+    if (showAddFriendDialog) {
+        AddFriendBottomSheetDialog(
+            onDismiss = { showAddFriendDialog = false },
+            onConfirm = { name ->
+                onAddNewFriend(name)
+                showAddFriendDialog = false
+            }
+        )
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -305,59 +322,140 @@ fun SelectFriendsBottomSheet(
                 .navigationBarsPadding()
                 .padding(horizontal = 16.dp)
         ) {
-            Text(
-                text = "Selecionar amigos",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Selecionar amigos",
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Button(onClick = onConfirm) {
+                    Text("Confirmar")
+                }
+            }
+
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(8.dp))
 
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                contentPadding = PaddingValues(bottom = 12.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = PaddingValues(vertical = 8.dp)
             ) {
-                items(availableFriends) { friend ->
-                    Row(
+                if (availableFriends.isEmpty()) {
+                    item {
+                        Text(
+                            text = "Sem amigos disponíveis para adicionar.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(vertical = 12.dp)
+                        )
+                    }
+                }
+
+                items(availableFriends, key = { it.id }) { friend ->
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable {
-                                if (selectedIds.contains(friend.id)) {
-                                    selectedIds.remove(friend.id)
-                                } else {
-                                    selectedIds.add(friend.id)
-                                }
-                            }
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .clickable { onSelectFriend(friend.id) },
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+                        )
                     ) {
-                        Text(
-                            text = friend.name,
-                            modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        Checkbox(
-                            checked = selectedIds.contains(friend.id),
-                            onCheckedChange = null // O clique e tratado na Row para melhor UX
-                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 14.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = friend.name,
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Icon(
+                                imageVector = Icons.Default.CheckBoxOutlineBlank,
+                                contentDescription = "Selecionar amigo",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 }
             }
 
-            HorizontalDivider()
             Spacer(modifier = Modifier.height(12.dp))
-
             Button(
-                onClick = { onConfirm(selectedIds.toList()) },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = selectedIds.isNotEmpty()
+                onClick = { showAddFriendDialog = true },
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Adicionar selecionados")
+                Text("Novo amigo")
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
         }
     }
+}
+
+@Composable
+private fun AddFriendBottomSheetDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "Novo amigo") },
+        text = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Nome") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Sentences,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        keyboardController?.hide()
+                        focusManager.clearFocus()
+                    }
+                )
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (name.isNotBlank()) {
+                        onConfirm(name)
+                    }
+                },
+                enabled = name.isNotBlank()
+            ) {
+                Text("Adicionar")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
+            ) {
+                Text("Cancelar")
+            }
+        }
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -403,7 +501,6 @@ fun ParticipantsSection(
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 participants.forEach { friend ->
                     InputChip(
@@ -425,12 +522,15 @@ fun ParticipantsSection(
                 // Botao "+" ao final da lista
                 IconButton(
                     onClick = onAddClicked,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "Adicionar mais",
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.onPrimary
                     )
                 }
             }
@@ -604,7 +704,7 @@ fun ItemParticipantsSection(
                 // Modo Manual
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     allParticipants.forEach { friend ->
                         FilterChip(

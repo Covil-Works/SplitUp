@@ -501,6 +501,7 @@ fun ParticipantsSection(
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically)
             ) {
                 participants.forEach { friend ->
                     InputChip(
@@ -519,18 +520,20 @@ fun ParticipantsSection(
                     )
                 }
 
-                // Botao "+" ao final da lista
-                IconButton(
-                    onClick = onAddClicked,
+                // Botao "+" ao final da lista (tamanho visual fixo, alinhado aos chips)
+                Box(
                     modifier = Modifier
                         .size(32.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primary)
+                        .clickable(onClick = onAddClicked),
+                    contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "Adicionar mais",
-                        tint = MaterialTheme.colorScheme.onPrimary
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }

@@ -1,6 +1,12 @@
 ﻿package com.covildev.splitup.check.ui
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,6 +22,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,6 +35,7 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
@@ -41,6 +49,8 @@ import com.covildev.splitup.check.domain.ItemWithSharers
 import com.covildev.splitup.friend.domain.Friend
 import com.covildev.splitup.ui.theme.SurfaceBlueGrey
 import androidx.compose.foundation.shape.RoundedCornerShape
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -295,11 +305,15 @@ fun SelectFriendsBottomSheet(
     onConfirm: () -> Unit,
     onAddNewFriend: (String) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
     val configuration = LocalConfiguration.current
     val minSheetHeight = configuration.screenHeightDp.dp * 0.3f
-    val maxSheetHeight = configuration.screenHeightDp.dp * 0.8f
+    val maxSheetHeight = configuration.screenHeightDp.dp * 0.7f
     var showAddFriendDialog by remember { mutableStateOf(false) }
+    var bumpingFriendId by remember { mutableStateOf<Int?>(null) }
+    var checkedFriendIds by remember { mutableStateOf<Set<Int>>(emptySet()) }
+    var collapsingFriendIds by remember { mutableStateOf<Set<Int>>(emptySet()) }
 
     if (showAddFriendDialog) {
         AddFriendBottomSheetDialog(
@@ -361,31 +375,69 @@ fun SelectFriendsBottomSheet(
                 }
 
                 items(availableFriends, key = { it.id }) { friend ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelectFriend(friend.id) },
-                        shape = RoundedCornerShape(14.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
-                        )
+                    val isBumping = bumpingFriendId == friend.id
+                    val isChecked = friend.id in checkedFriendIds
+                    val isCollapsing = friend.id in collapsingFriendIds
+                    val scale by animateFloatAsState(
+                        targetValue = if (isBumping) 1.035f else 1f,
+                        animationSpec = tween(durationMillis = 120),
+                        label = "friend_card_scale"
+                    )
+
+                    AnimatedVisibility(
+                        visible = !isCollapsing,
+                        exit = shrinkVertically(animationSpec = tween(220)) +
+                            shrinkHorizontally(animationSpec = tween(220)) +
+                            fadeOut(animationSpec = tween(180))
                     ) {
-                        Row(
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 14.dp, vertical = 14.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                                .scale(scale)
+                                .clickable(enabled = !isCollapsing) {
+                                    if (friend.id in checkedFriendIds || friend.id in collapsingFriendIds) return@clickable
+                                    scope.launch {
+                                        val wasExpanded =
+                                            sheetState.currentValue == SheetValue.Expanded ||
+                                                sheetState.targetValue == SheetValue.Expanded
+                                        bumpingFriendId = friend.id
+                                        delay(110)
+                                        checkedFriendIds = checkedFriendIds + friend.id
+                                        delay(70)
+                                        bumpingFriendId = null
+                                        collapsingFriendIds = collapsingFriendIds + friend.id
+                                        delay(220)
+                                        onSelectFriend(friend.id)
+                                        if (wasExpanded) {
+                                            delay(16)
+                                            runCatching { sheetState.expand() }
+                                        }
+                                        checkedFriendIds = checkedFriendIds - friend.id
+                                        collapsingFriendIds = collapsingFriendIds - friend.id
+                                    }
+                                },
+                            shape = RoundedCornerShape(14.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+                            )
                         ) {
-                            Text(
-                                text = friend.name,
-                                modifier = Modifier.weight(1f),
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                            Icon(
-                                imageVector = Icons.Default.CheckBoxOutlineBlank,
-                                contentDescription = "Selecionar amigo",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 14.dp, vertical = 14.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = friend.name,
+                                    modifier = Modifier.weight(1f),
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                                Icon(
+                                    imageVector = if (isChecked) Icons.Default.CheckBox else Icons.Default.CheckBoxOutlineBlank,
+                                    contentDescription = "Selecionar amigo",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
                     }
                 }

@@ -132,6 +132,7 @@ fun PaidCheckDetailScreen(
                                         itemWithSharers = itemWithSharers,
                                         isExpanded = uiState.expandedItemId == itemWithSharers.item.id,
                                         isEditing = false, // TRAVA VISUAL: Nunca entra em modo edicao
+                                        showEditButton = false,
                                         editingName = "", editingQuantity = 0, editingValue = "", editingSharers = emptySet(),
                                         allParticipants = uiState.participants,
                                         onClickExpand = { viewModel.onExpandItem(itemWithSharers.item.id) },

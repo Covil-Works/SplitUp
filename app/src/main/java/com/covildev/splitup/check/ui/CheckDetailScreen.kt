@@ -996,6 +996,7 @@ fun ExpandableItemCard(
     itemWithSharers: ItemWithSharers,
     isExpanded: Boolean,
     isEditing: Boolean,
+    showEditButton: Boolean = true,
 
     editingName: String,
     editingQuantity: Int,
@@ -1131,7 +1132,7 @@ fun ExpandableItemCard(
                         )
                     }
                     // Se expandido, mostra botao de Editar. Se nao, mostra valor total.
-                    if (isExpanded) {
+                    if (isExpanded && showEditButton) {
                         IconButton(onClick = onStartEdit) {
                             Icon(Icons.Default.Edit, contentDescription = "Editar Item", tint = MaterialTheme.colorScheme.primary)
                         }

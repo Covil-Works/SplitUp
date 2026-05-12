@@ -321,7 +321,6 @@ fun SelectFriendsBottomSheet(
                 .fillMaxWidth()
                 .heightIn(min = minSheetHeight)
                 .heightIn(max = maxSheetHeight)
-                .navigationBarsPadding()
                 .padding(horizontal = 16.dp)
         ) {
             Row(
@@ -345,14 +344,15 @@ fun SelectFriendsBottomSheet(
 
             LazyColumn(
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .weight(1f, fill = false),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 contentPadding = PaddingValues(vertical = 8.dp)
             ) {
                 if (availableFriends.isEmpty()) {
                     item {
                         Text(
-                            text = "Adicione seu primeiro amigo",
+                            text = "Nenhum amigo disponível para adicionar.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(vertical = 12.dp)
@@ -389,17 +389,19 @@ fun SelectFriendsBottomSheet(
                         }
                     }
                 }
-                item {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Button(
-                        onClick = { showAddFriendDialog = true },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Novo amigo")
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            Button(
+                onClick = { showAddFriendDialog = true },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Novo amigo")
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(
+                modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars)
+            )
         }
     }
 }

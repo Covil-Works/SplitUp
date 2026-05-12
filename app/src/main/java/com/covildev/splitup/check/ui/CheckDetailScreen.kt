@@ -1,12 +1,6 @@
 ﻿package com.covildev.splitup.check.ui
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,10 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CheckBox
-import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -32,25 +23,20 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.foundation.text.KeyboardActions
 import com.covildev.splitup.check.domain.ItemWithSharers
 import com.covildev.splitup.friend.domain.Friend
 import com.covildev.splitup.ui.theme.SurfaceBlueGrey
 import androidx.compose.foundation.shape.RoundedCornerShape
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -102,9 +88,7 @@ fun CheckDetailScreen(
         SelectFriendsBottomSheet(
             availableFriends = uiState.availableFriends,
             onDismiss = { viewModel.onDismissBottomSheet() },
-            onSelectFriend = { friendId -> viewModel.onSelectAvailableFriend(friendId) },
-            onConfirm = { viewModel.onDismissBottomSheet() },
-            onAddNewFriend = { name -> viewModel.onAddFriendFromBottomSheet(name) }
+            onConfirm = { ids -> viewModel.onConfirmParticipants(ids) }
         )
     }
 
@@ -301,29 +285,13 @@ fun CheckDetailScreen(
 fun SelectFriendsBottomSheet(
     availableFriends: List<com.covildev.splitup.friend.domain.Friend>,
     onDismiss: () -> Unit,
-    onSelectFriend: (Int) -> Unit,
-    onConfirm: () -> Unit,
-    onAddNewFriend: (String) -> Unit
+    onConfirm: (List<Int>) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val scope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState()
     val configuration = LocalConfiguration.current
-    val minSheetHeight = configuration.screenHeightDp.dp * 0.3f
     val maxSheetHeight = configuration.screenHeightDp.dp * 0.7f
-    var showAddFriendDialog by remember { mutableStateOf(false) }
-    var bumpingFriendId by remember { mutableStateOf<Int?>(null) }
-    var checkedFriendIds by remember { mutableStateOf<Set<Int>>(emptySet()) }
-    var collapsingFriendIds by remember { mutableStateOf<Set<Int>>(emptySet()) }
-
-    if (showAddFriendDialog) {
-        AddFriendBottomSheetDialog(
-            onDismiss = { showAddFriendDialog = false },
-            onConfirm = { name ->
-                onAddNewFriend(name)
-                showAddFriendDialog = false
-            }
-        )
-    }
+    // Lista temporaria para guardar os IDs selecionados no sheet
+    val selectedIds = remember { mutableStateListOf<Int>() }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -333,185 +301,63 @@ fun SelectFriendsBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = minSheetHeight)
                 .heightIn(max = maxSheetHeight)
+                .navigationBarsPadding()
                 .padding(horizontal = 16.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Selecionar amigos",
-                    style = MaterialTheme.typography.titleLarge
-                )
-                Button(onClick = onConfirm) {
-                    Text("Confirmar")
-                }
-            }
-
-            HorizontalDivider()
-            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Selecionar amigos",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
 
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f, fill = false),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                contentPadding = PaddingValues(vertical = 8.dp)
+                    .weight(1f),
+                contentPadding = PaddingValues(bottom = 12.dp)
             ) {
-                if (availableFriends.isEmpty()) {
-                    item {
+                items(availableFriends) { friend ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                if (selectedIds.contains(friend.id)) {
+                                    selectedIds.remove(friend.id)
+                                } else {
+                                    selectedIds.add(friend.id)
+                                }
+                            }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Text(
-                            text = "Nenhum amigo disponível para adicionar.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(vertical = 12.dp)
+                            text = friend.name,
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        Checkbox(
+                            checked = selectedIds.contains(friend.id),
+                            onCheckedChange = null // O clique e tratado na Row para melhor UX
                         )
                     }
                 }
-
-                items(availableFriends, key = { it.id }) { friend ->
-                    val isBumping = bumpingFriendId == friend.id
-                    val isChecked = friend.id in checkedFriendIds
-                    val isCollapsing = friend.id in collapsingFriendIds
-                    val scale by animateFloatAsState(
-                        targetValue = if (isBumping) 1.035f else 1f,
-                        animationSpec = tween(durationMillis = 120),
-                        label = "friend_card_scale"
-                    )
-
-                    AnimatedVisibility(
-                        visible = !isCollapsing,
-                        exit = shrinkVertically(animationSpec = tween(220)) +
-                            shrinkHorizontally(animationSpec = tween(220)) +
-                            fadeOut(animationSpec = tween(180))
-                    ) {
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .scale(scale)
-                                .clickable(enabled = !isCollapsing) {
-                                    if (friend.id in checkedFriendIds || friend.id in collapsingFriendIds) return@clickable
-                                    scope.launch {
-                                        val wasExpanded =
-                                            sheetState.currentValue == SheetValue.Expanded ||
-                                                sheetState.targetValue == SheetValue.Expanded
-                                        bumpingFriendId = friend.id
-                                        delay(110)
-                                        checkedFriendIds = checkedFriendIds + friend.id
-                                        delay(70)
-                                        bumpingFriendId = null
-                                        collapsingFriendIds = collapsingFriendIds + friend.id
-                                        delay(220)
-                                        onSelectFriend(friend.id)
-                                        if (wasExpanded) {
-                                            delay(16)
-                                            runCatching { sheetState.expand() }
-                                        }
-                                        checkedFriendIds = checkedFriendIds - friend.id
-                                        collapsingFriendIds = collapsingFriendIds - friend.id
-                                    }
-                                },
-                            shape = RoundedCornerShape(14.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
-                            )
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 14.dp, vertical = 14.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = friend.name,
-                                    modifier = Modifier.weight(1f),
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                                Icon(
-                                    imageVector = if (isChecked) Icons.Default.CheckBox else Icons.Default.CheckBoxOutlineBlank,
-                                    contentDescription = "Selecionar amigo",
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
-                    }
-                }
             }
 
+            HorizontalDivider()
             Spacer(modifier = Modifier.height(12.dp))
+
             Button(
-                onClick = { showAddFriendDialog = true },
-                modifier = Modifier.fillMaxWidth()
+                onClick = { onConfirm(selectedIds.toList()) },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = selectedIds.isNotEmpty()
             ) {
-                Text("Novo amigo")
+                Text("Adicionar selecionados")
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            Spacer(
-                modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars)
-            )
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
-}
-
-@Composable
-private fun AddFriendBottomSheetDialog(
-    onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit
-) {
-    var name by remember { mutableStateOf("") }
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val focusManager = LocalFocusManager.current
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(text = "Novo amigo") },
-        text = {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Nome") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Sentences,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        keyboardController?.hide()
-                        focusManager.clearFocus()
-                    }
-                )
-            )
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    if (name.isNotBlank()) {
-                        onConfirm(name)
-                    }
-                },
-                enabled = name.isNotBlank()
-            ) {
-                Text("Adicionar")
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = onDismiss,
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                )
-            ) {
-                Text("Cancelar")
-            }
-        }
-    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -557,7 +403,7 @@ fun ParticipantsSection(
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 participants.forEach { friend ->
                     InputChip(
@@ -576,20 +422,15 @@ fun ParticipantsSection(
                     )
                 }
 
-                // Botao "+" ao final da lista (tamanho visual fixo, alinhado aos chips)
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary)
-                        .clickable(onClick = onAddClicked),
-                    contentAlignment = Alignment.Center
+                // Botao "+" ao final da lista
+                IconButton(
+                    onClick = onAddClicked,
+                    modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "Adicionar mais",
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(18.dp)
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -763,7 +604,7 @@ fun ItemParticipantsSection(
                 // Modo Manual
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     allParticipants.forEach { friend ->
                         FilterChip(

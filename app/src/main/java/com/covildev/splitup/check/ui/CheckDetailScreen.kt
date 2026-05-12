@@ -297,7 +297,8 @@ fun SelectFriendsBottomSheet(
 ) {
     val sheetState = rememberModalBottomSheetState()
     val configuration = LocalConfiguration.current
-    val maxSheetHeight = configuration.screenHeightDp.dp * 0.7f
+    val minSheetHeight = configuration.screenHeightDp.dp * 0.3f
+    val maxSheetHeight = configuration.screenHeightDp.dp * 0.8f
     var showAddFriendDialog by remember { mutableStateOf(false) }
 
     if (showAddFriendDialog) {
@@ -318,6 +319,7 @@ fun SelectFriendsBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .heightIn(min = minSheetHeight)
                 .heightIn(max = maxSheetHeight)
                 .navigationBarsPadding()
                 .padding(horizontal = 16.dp)
@@ -343,15 +345,14 @@ fun SelectFriendsBottomSheet(
 
             LazyColumn(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
+                    .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 contentPadding = PaddingValues(vertical = 8.dp)
             ) {
                 if (availableFriends.isEmpty()) {
                     item {
                         Text(
-                            text = "Sem amigos disponíveis para adicionar.",
+                            text = "Adicione seu primeiro amigo",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(vertical = 12.dp)
@@ -388,16 +389,17 @@ fun SelectFriendsBottomSheet(
                         }
                     }
                 }
+                item {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Button(
+                        onClick = { showAddFriendDialog = true },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Novo amigo")
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
-            Button(
-                onClick = { showAddFriendDialog = true },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Novo amigo")
-            }
-            Spacer(modifier = Modifier.height(12.dp))
         }
     }
 }

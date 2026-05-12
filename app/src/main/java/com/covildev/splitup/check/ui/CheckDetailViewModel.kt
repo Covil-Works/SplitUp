@@ -19,17 +19,14 @@ import com.covildev.splitup.check.domain.RemoveParticipantUseCase
 import com.covildev.splitup.check.domain.ToggleItemShareUseCase
 import com.covildev.splitup.check.domain.UpdateItemUseCase
 import com.covildev.splitup.common.utils.CurrencyUtils
-import com.covildev.splitup.friend.domain.AddFriendResult
-import com.covildev.splitup.friend.domain.AddFriendUseCase
-import com.covildev.splitup.friend.domain.Friend
 import com.covildev.splitup.friend.domain.GetActiveFriendsUseCase
-import com.covildev.splitup.friend.domain.ReactivateAddFriendUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -46,8 +43,6 @@ class CheckDetailViewModel @Inject constructor(
     private val addParticipantsUseCase: AddParticipantsUseCase,
     private val removeParticipantUseCase: RemoveParticipantUseCase,
     private val getActiveFriendsUseCase: GetActiveFriendsUseCase,
-    private val addFriendUseCase: AddFriendUseCase,
-    private val reactivateAddFriendUseCase: ReactivateAddFriendUseCase,
     private val addItemUseCase: AddItemUseCase,
     private val toggleItemShareUseCase: ToggleItemShareUseCase,
     private val getItemsByCheckUseCase: GetItemsByCheckUseCase,
@@ -66,12 +61,10 @@ class CheckDetailViewModel @Inject constructor(
 
     private val _uiEvent = MutableSharedFlow<CheckDetailUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
-    private var allActiveFriends: List<Friend> = emptyList()
 
     init {
         Timber.i("CheckDetailViewModel iniciada para a comanda ID: $checkId")
         observeCheck()
-        observeAllActiveFriends()
         observeParticipants()
         observeItems()
     }
@@ -182,26 +175,7 @@ class CheckDetailViewModel @Inject constructor(
         getParticipantsUseCase(checkId)
             .onEach { list ->
                 _uiState.update { it.copy(participants = list) }
-                recomputeAvailableFriends(list)
             }.launchIn(viewModelScope)
-    }
-
-    private fun observeAllActiveFriends() {
-        getActiveFriendsUseCase()
-            .onEach { friends ->
-                allActiveFriends = friends
-                recomputeAvailableFriends()
-            }
-            .launchIn(viewModelScope)
-    }
-
-    private fun recomputeAvailableFriends(participants: List<Friend> = uiState.value.participants) {
-        val participantIds = participants.map { it.id }.toSet()
-        val available = allActiveFriends.filter { it.id !in participantIds }
-
-        _uiState.update { currentState ->
-            currentState.copy(availableFriends = available)
-        }
     }
 
     fun onDismissBottomSheet() {
@@ -209,46 +183,29 @@ class CheckDetailViewModel @Inject constructor(
     }
 
     fun onAddFriendsClicked() {
-        _uiState.update { it.copy(showBottomSheet = true) }
-    }
-
-    fun onSelectAvailableFriend(friendId: Int) {
         viewModelScope.launch {
-            _uiState.update { state ->
-                state.copy(
-                    availableFriends = state.availableFriends.filterNot { it.id == friendId }
-                )
-            }
-
             try {
-                addParticipantsUseCase(checkId, listOf(friendId))
+                val allFriends = getActiveFriendsUseCase().first()
+
+                val participantIds = uiState.value.participants.map { it.id }
+                val available = allFriends.filter { it.id !in participantIds }
+
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        availableFriends = available,
+                        showBottomSheet = true
+                    )
+                }
             } catch (e: Exception) {
-                Timber.e(e, "Erro ao adicionar participante")
-                recomputeAvailableFriends()
+                Timber.e(e, "Erro ao carregar amigos disponíveis")
             }
         }
     }
 
-    fun onAddFriendFromBottomSheet(name: String) {
+    fun onConfirmParticipants(selectedIds: List<Int>) {
         viewModelScope.launch {
-            when (val result = addFriendUseCase(name)) {
-                is AddFriendResult.Success -> {
-                    // A lista será atualizada pelo fluxo de amigos ativos.
-                }
-                is AddFriendResult.NeedsReactivation -> {
-                    reactivateAddFriendUseCase(result.friend)
-                }
-                is AddFriendResult.AlreadyExistsActive -> {
-                    // Nada a fazer. Se não participar da comanda, já aparecerá na lista.
-                }
-                is AddFriendResult.Error -> {
-                    _uiState.update {
-                        it.copy(
-                            infoDialogMessage = result.exception.message ?: "Erro ao adicionar amigo."
-                        )
-                    }
-                }
-            }
+            addParticipantsUseCase(checkId, selectedIds)
+            onDismissBottomSheet()
         }
     }
 
